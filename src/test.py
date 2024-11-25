@@ -1,4 +1,3 @@
-import gym
 
 from env.snake.grid import Grid
 from env.snake_env import Snake_Env
@@ -27,7 +26,7 @@ while i<10000:
     action = env.action_space.sample()
     grid, reward, done, dict =env.step(action)
     env.render()
-    print(f"{i} Reward: {reward}, Score: {dict["score"]}")
+    print(f"{i} Reward: {reward}, Score: {dict['score']}")
     i+=1
     if(done):
         env.reset()
