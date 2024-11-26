@@ -78,7 +78,8 @@ class Grid:
             return self._get_obs(), reward, self.done, {"score": self.score}
         
         # Collisione corpo
-        if(head.get_point in body):
+        if(head in body):
+
             reward = REWARD_COLLISION_SELF  # Penalità per collisione con se stesso
             self.done = True
             return self._get_obs(), reward, self.done, {"score": self.score}

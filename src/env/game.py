@@ -43,4 +43,4 @@ class Game():
                 pygame.draw.rect(self.screen, color, rect)
 
         pygame.display.flip()
-        self.clock.tick(10)
+        self.clock.tick(5)

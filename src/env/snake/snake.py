@@ -6,7 +6,7 @@ class Snake:
     """
         Definisce un serpente all'interno del gioco di Snake.
     """
-    def __init__(self, body: Point = Point(1, 1), direction: Point = Point(0,1)):
+    def __init__(self, body: Point = Point(1, 1), direction: Point = Point(0,1), length=10):
         """ Inizializza un oggetto Snake.
 
         Args:
@@ -17,6 +17,12 @@ class Snake:
         self.body.append(body)
         self.direction = direction
         self.grow = False # Indica se il serpente deve crescere.
+
+        start = body
+        for i in range(0, length-1):
+            opposite=Point(direction.get_x()*-1, direction.get_y()*1)
+            body = Point(body.get_x() + opposite.get_x(), body.get_y() + opposite.get_y())
+            self.body.append(body)
 
     def get_all_body(self) -> Deque[Point]:
         return self.body
@@ -34,7 +40,10 @@ class Snake:
             direction (Point): Indica in che posizione il serpente deve spostarsi.
         """
         
-        # Attenzione alla direzione opposta
+        # Gestione direzione opposta
+        opposite=Point(direction.get_x()*-1, direction.get_y()*-1)
+        if opposite == self.direction:
+            return
         
         # Aggiorna la posizione del serpente in base alla direzione
         new_head = Point(
@@ -45,6 +54,7 @@ class Snake:
         
         if(not self.grow): # False
             self.body.pop() # Elimina l'ultimo punto
+        self.direction = direction
     
     def set_grow(self, grow=True):
         self.grow = grow
