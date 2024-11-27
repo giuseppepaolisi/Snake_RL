@@ -1,7 +1,7 @@
 import pygame
 import random
 import numpy as np
-from .snake.colors import BODY_COLOR, FOOD_COLOR, HEAD_COLOR, SPACE_COLOR
+from .snake.const.colors import BODY_COLOR, FOOD_COLOR, HEAD_COLOR, SPACE_COLOR
 
 class Game():
     """
@@ -44,3 +44,11 @@ class Game():
 
         pygame.display.flip()
         self.clock.tick(5)
+    
+    def close(self):
+        """
+        Chiude la finestra di rendering e termina pygame.
+        """
+        if self.screen is not None:
+            pygame.quit()
+            self.running = False

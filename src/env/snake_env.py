@@ -3,13 +3,14 @@ import numpy as np
 import gym
 from gym import error, spaces, utils
 from .snake.grid import Grid
-from .snake.actions import UP, RIGHT, DOWN, LEFT, DIRECTION_UP, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT
+from .snake.const.actions import UP, RIGHT, DOWN, LEFT, DIRECTION_UP, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT
 from .game import Game
 
 class Snake_Env(gym.Env):
     metadata = {'render.modes': ['human']}
     
     def __init__(self, grid_size=[10,10], cell_size=30):
+        super(Snake_Env, self).__init__()
         self.grid_size = grid_size
         self.cell_size = cell_size
         
@@ -44,8 +45,12 @@ class Snake_Env(gym.Env):
         return  self.last_obs, reward, done, info
     
     def reset(self):
+        self.game = Game(self.grid_size, self.cell_size)
         self.grid.reset()
         return self.grid._get_obs()
     
     def render(self):
         self.game.render(self.grid.get_grid_color())
+        
+    def close(self):
+        self.game.close()
