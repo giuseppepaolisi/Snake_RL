@@ -1,4 +1,4 @@
-from .point import Point
+from ..point import Point
 
 """
     Azzioni che possono essere fatte da snake

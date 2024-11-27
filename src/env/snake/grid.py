@@ -2,9 +2,9 @@
 from .snake import Snake
 from .apple import Apple
 from .point import Point
-from .rewards import REWARD_COLLISION, REWARD_COLLISION_SELF, REWARD_FOOD, REWARD_STEP
-from .states import VOID, SNAKE, APPLE
-from .colors import BODY_COLOR, FOOD_COLOR, HEAD_COLOR, SPACE_COLOR
+from .const.rewards import REWARD_COLLISION, REWARD_COLLISION_SELF, REWARD_FOOD, REWARD_STEP
+from .const.states import VOID, SNAKE, APPLE
+from .const.colors import BODY_COLOR, FOOD_COLOR, HEAD_COLOR, SPACE_COLOR
 import numpy as np
 import random
 

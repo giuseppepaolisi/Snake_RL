@@ -20,9 +20,9 @@ class Snake:
 
         start = body
         for i in range(0, length-1):
-            opposite=Point(direction.get_x()*-1, direction.get_y()*1)
-            body = Point(body.get_x() + opposite.get_x(), body.get_y() + opposite.get_y())
-            self.body.append(body)
+            opposite=Point(direction.get_x()*-1, direction.get_y()*-1)
+            start = Point(start.get_x() + opposite.get_x(), start.get_y() + opposite.get_y())
+            self.body.append(start)
 
     def get_all_body(self) -> Deque[Point]:
         return self.body
