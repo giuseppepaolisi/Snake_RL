@@ -15,6 +15,7 @@ i = 0
 
 while i<100:
     ricompensa_cum = 0
+    score = 0
     env.reset()
     while not done:
         action = env.action_space.sample()
@@ -22,7 +23,8 @@ while i<100:
         env.render()
         print(f"{i} Reward: {reward}, Score: {dict['score']}")
         ricompensa_cum += reward
+        score = dict['score']
     done = False
-    print(f"\n\t***episodio: {i} ricompensa {ricompensa_cum}\n")
+    print(f"\n\t***episodio: {i} ricompensa: {ricompensa_cum} score: {score}\n")
     i+=1
 env.close()
