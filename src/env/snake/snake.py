@@ -6,7 +6,7 @@ class Snake:
     """
         Definisce un serpente all'interno del gioco di Snake.
     """
-    def __init__(self, body: Point = Point(1, 1), direction: Point = Point(0,1), length=10):
+    def __init__(self, body: Point = Point(1, 1), direction: Point = Point(0,1), length=3):
         """ Inizializza un oggetto Snake.
 
         Args:

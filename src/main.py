@@ -1,45 +1,53 @@
 import gym
-from env.agents import QLearningAgent, SarsaAgent
-from env.train import train_agent
-from env.snake.Snake_Env import Snake_Env
-from src.env.train import discretize_state
+from env.agents import QLearningAgent
+from env.snake_env import Snake_Env
+import numpy as np
+from train import Train
+from gym.envs.registration import register
 
 def main():
     # Registriamo l'ambiente direttamente nel main.py
-    gym.envs.registration.register(
-        id='Snake-v0',  # Nome dell'ambiente
-        entry_point='env.snake.snake_env:Snake_Env',  # Il percorso completo della classe Snake_Env
-        max_episode_steps=100,  # Numero massimo di passi per episodio
+    register(
+        id='Snake-v0',
+        entry_point='env.snake_env:Snake_Env',
     )
 
     # Creazione dell'ambiente Snake
-    env = gym.make('Snake-v0')  # Gym ora caricherà Snake_Env registrato
+    env = gym.make('Snake-v0')
 
-    state_size = 1000  # Numero massimo di stati discreti
+    grid_size = [5, 5]
+    state_size = env.observation_space
     action_size = env.action_space.n
-
-    # Lista di modelli da testare
-    agents = [
-        ("Q-Learning", QLearningAgent(state_size=state_size, action_size=action_size, alpha=0.1, gamma=0.95)),
-        ("SARSA", SarsaAgent(state_size=state_size, action_size=action_size, alpha=0.1, gamma=0.95))
-    ]
+    episodes=200000
     
-    # Testa tutti i modelli
-    for model_name, agent in agents:
-        print(f"\n\n*** Inizio Training per il modello: {model_name} ***")
-        
-        # Training
-        train_agent(env, agent, episodes=100)
+    agent = QLearningAgent(state_size, action_size, learning_rate=0.001, gamma=0.95, epsilon=0.1)
+    
+    #train = Train(env,agent, episodes, max_steps=200)
+    #train.train()
+    
+    agent = QLearningAgent(state_size, action_size, learning_rate=0.001, gamma=0.95, epsilon=0.001)
+    agent.load('models/snake_q_agent.pkl')
+    
+    num_episodes = 10
 
-        # Testing
-        print(f"\nTesting {model_name} Agent...")
+    for episode in range(num_episodes):
         state = env.reset()
-        state = discretize_state(state)
+        total_reward = 0
         done = False
+
+        print(f"--- Episodio {episode + 1} ---")
+
         while not done:
+            env.render() 
             action = agent.choose_action(state)
-            state, _, done, _ = env.step(action)
-            env.render()
+            next_state, reward, done, info = env.step(action)
+            total_reward += reward
+            state = next_state
+
+        print(f"Totale ricompensa per l'episodio {episode + 1}: {total_reward} Score: {info['score']}")
+
+    env.close()
+    
 
 if __name__ == "__main__":
     main()

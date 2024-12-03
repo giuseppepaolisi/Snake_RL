@@ -20,7 +20,8 @@ class Grid:
         """
         self.grid_size = grid_size
         self.grid = np.zeros(grid_size, dtype=np.int32)
-        self.snake = Snake(self._place_snake())
+        #self.snake = Snake(self._place_snake())
+        self.snake =Snake(Point(grid_size[0] // 2, grid_size[1] // 2))
         self.apple = Apple(self._place_apple())
         self.score = 0
         self.done = False # Stato del gioco
@@ -31,7 +32,8 @@ class Grid:
             Reset della griglia di gioco.
         """
         self.grid = np.zeros(self.grid_size, dtype=np.int32)
-        self.snake = Snake(self._place_snake())
+        #self.snake = Snake(self._place_snake())
+        self.snake =Snake(Point(self.grid_size[0] // 2, self.grid_size[1] // 2))
         self.apple = Apple(self._place_apple()) 
         self.score = 0
         self.done = False

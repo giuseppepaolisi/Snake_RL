@@ -9,7 +9,7 @@ from .game import Game
 class Snake_Env(gym.Env):
     metadata = {'render.modes': ['human']}
     
-    def __init__(self, grid_size=[10,10], cell_size=30):
+    def __init__(self, grid_size=[5,5], cell_size=30):
         super(Snake_Env, self).__init__()
         self.grid_size = grid_size
         self.cell_size = cell_size
