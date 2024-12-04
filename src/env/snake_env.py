@@ -9,7 +9,7 @@ from .game import Game
 class Snake_Env(gym.Env):
     metadata = {'render.modes': ['human']}
     
-    def __init__(self, grid_size=[5,5], cell_size=30):
+    def __init__(self, video=False, grid_size=[5,5], cell_size=30):
         super(Snake_Env, self).__init__()
         self.grid_size = grid_size
         self.cell_size = cell_size
@@ -21,7 +21,9 @@ class Snake_Env(gym.Env):
         
         self.grid = Grid(grid_size)
         
-        self.game = Game(grid_size, cell_size)
+        self.video = video
+        if self.video:
+            self.game = Game(grid_size, cell_size)
         
     def step(self, action: np.int32):
         """ Permette di effettuare un azione nel gioco.
@@ -45,12 +47,18 @@ class Snake_Env(gym.Env):
         return  self.last_obs, reward, done, info
     
     def reset(self):
-        self.game = Game(self.grid_size, self.cell_size)
+        if self.video:
+            self.game = Game(self.grid_size, self.cell_size)
         self.grid.reset()
         return self.grid._get_obs()
     
     def render(self):
-        self.game.render(self.grid.get_grid_color())
+        if self.video:
+            self.game.render(self.grid.get_grid_color())
         
     def close(self):
-        self.game.close()
+        if self.video:
+            self.game.close()
+    
+    def setVideo(self, video=True):
+        self.video = video
