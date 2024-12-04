@@ -1,4 +1,6 @@
 import numpy as np
+import pickle
+import os
 
 # Classe base per gli agenti
 class BaseAgent:
@@ -95,13 +97,46 @@ class QLearningAgent(BaseAgent):
         
     def save(self, filepath):
         """Salva il modello"""
-        import pickle
-        with open(filepath, 'wb') as f:
-            pickle.dump(self.q_table, f)
+        try:
+            # Salva sia la Q-table che l'epsilon
+            save_data = {
+                'q_table': self.q_table,
+                'epsilon': self.epsilon,
+                'gamma': self.gamma,
+                'learning_rate' : self.learning_rate,
+            }
+            with open(filepath, 'wb') as f:
+                pickle.dump(save_data, f)
+            print(f"Modello salvato con successo in {filepath}")
+        except Exception as e:
+            print(f"Errore durante il salvataggio: {e}")
     
     def load(self, filepath):
         """carica il modello"""
-        import pickle
-        with open(filepath, 'rb') as f:
-            self.q_table = pickle.load(f)
+        if not os.path.exists(filepath):
+            print(f"File non trovato: {filepath}")
+            return False
+        
+        try:
+            with open(filepath, 'rb') as f:
+                loaded_data = pickle.load(f)
+            
+            # Carica Q-table
+            self.q_table = loaded_data['q_table']
+            
+            # Ripristina epsilon, se salvato
+            if 'epsilon' in loaded_data:
+                self.epsilon = loaded_data['epsilon']
+            
+            if 'gamma' in loaded_data:
+                self.gamma = loaded_data['gamma']
+                
+            if 'learning_rate' in loaded_data:
+                self.learning_rate = loaded_data['learning_rate']
+            
+            print(f"Modello caricato con successo da {filepath}")
+            return True
+        except Exception as e:
+            print(f"Errore durante il caricamento: {e}")
+            return False
         

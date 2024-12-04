@@ -21,7 +21,7 @@ class Train:
         os.makedirs('models', exist_ok=True)
                 
         for episode in range(self.episodes):
-            state = self.env.reset()
+            state, info = self.env.reset()
             total_reward = 0
             done = False
 
@@ -30,7 +30,7 @@ class Train:
                 action = self.agent.choose_action(state)
 
                 # Ambiente esegue l'azione
-                next_state, reward, done, info = self.env.step(action)
+                next_state, reward, done, truncated, info = self.env.step(action)
                 
                 # Impara dall'esperienza
                 self.agent.update(state, action, reward, next_state, done)
@@ -44,7 +44,7 @@ class Train:
 
             print(f"Episode {episode + 1}/{self.episodes}, Total Reward: {total_reward}, Score: {info['score']}")
 
-        self.agent.save('models/snake_q_agent.pkl')
+        self.agent.save(f'models/snake_q_agent_{episode+1}.pkl')
         print("Modello salvato in models/snake_q_agent.pkl")
         
         self.env.close()

@@ -12,25 +12,25 @@ def main():
     )
 
     # Creazione dell'ambiente Snake
-    env = gym.make('Snake-v0', grid_size=[8, 8])
+    env = gym.make('Snake-v0', grid_size=[5, 5])
 
     state_size = env.observation_space
     action_size = env.action_space.n
-    episodes=10000
+    episodes=100000
     
     agent = QLearningAgent(state_size, action_size, learning_rate=0.01, gamma=0.95, epsilon=0.01)
-    max_steps=500
+    max_steps=200
     #agent.load('models/snake_q_agent.pkl')
     
-    train = Train(env, agent, episodes, max_steps=max_steps)
-    train.train()
+    #train = Train(env, agent, episodes, max_steps=max_steps)
+    #train.train()
     
-    #agent.load('models/snake_q_agent.pkl')
+    agent.load(f'models/snake_q_agent_{episodes}.pkl')
     
     num_episodes = 25
-    env.setVideo(False)
+    env.setVideo(True)
     for episode in range(num_episodes):
-        state = env.reset()
+        state, info = env.reset()
         total_reward = 0
         done = False
 
@@ -39,7 +39,7 @@ def main():
         for step in range(max_steps):
             env.render() 
             action = agent.choose_action(state)
-            next_state, reward, done, info = env.step(action)
+            next_state, reward, done, truncated, info = env.step(action)
             total_reward += reward
             state = next_state
             
@@ -48,7 +48,7 @@ def main():
 
         print(f"Totale ricompensa per l'episodio {episode + 1}: {total_reward} Score: {info['score']}")
 
-    env.close()
+        env.close()
     
 
 if __name__ == "__main__":
