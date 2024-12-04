@@ -1,7 +1,7 @@
 
 import torch
 from env.agents import QLearningAgent
-from env.new_snake_env import Snake_Env
+from env.snake_env import Snake_Env
 
 import matplotlib.pyplot as plt
 import os

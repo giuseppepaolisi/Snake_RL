@@ -28,9 +28,12 @@ class QLearningAgent(BaseAgent):
         
     def get_state_key(self, state):
         """
-        Converte la griglia in una key per una hashtable
+        Converte lo stato in una chiave univoca per la Q-table.
+        Lo stato è un dizionario che concatena le coordinate di "snake" e "apple"
         """
-        return tuple(state.flatten())
+        snake_body = tuple(tuple(coord) for coord in state["snake"])
+        apple_location = tuple(state["apple"])
+        return snake_body, apple_location
     
     def get_q_value(self, state, action):
         """
