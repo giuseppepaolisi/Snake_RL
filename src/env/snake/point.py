@@ -27,5 +27,15 @@ class Point:
                 return True
         return False
     
+    def __add__(self, other):
+        if isinstance(other, Point):
+            return Point(self.x + other.get_x(), self.y + other.get_y())
+        raise TypeError("Addition only supported between two Points.")
+
+    def __sub__(self, other):
+        if isinstance(other, Point):
+            return Point(self.x - other.get_x(), self.y - other.get_y())
+        raise TypeError("Subtraction only supported between two Points.")
+    
     def __repr__(self):
         return f"Point({self.x}, {self.y})"
