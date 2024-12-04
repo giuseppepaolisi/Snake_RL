@@ -1,6 +1,5 @@
 import gym
 from env.agents import QLearningAgent
-from env.snake_env import Snake_Env
 import numpy as np
 from train import Train
 from gym.envs.registration import register
@@ -22,11 +21,10 @@ def main():
     
     agent = QLearningAgent(state_size, action_size, learning_rate=0.001, gamma=0.95, epsilon=0.1)
     
-    #train = Train(env,agent, episodes, max_steps=200)
-    #train.train()
+    train = Train(env,agent, episodes, max_steps=200)
+    train.train()
     
-    agent = QLearningAgent(state_size, action_size, learning_rate=0.001, gamma=0.95, epsilon=0.001)
-    agent.load('models/snake_q_agent.pkl')
+    #agent.load('models/snake_q_agent_200.pkl')
     
     num_episodes = 10
 
