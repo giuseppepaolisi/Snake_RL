@@ -7,7 +7,7 @@ from .snake.const.actions import UP, RIGHT, DOWN, LEFT, DIRECTION_UP, DIRECTION_
 from .game import Game
 
 class Snake_Env(gym.Env):
-    metadata = {'render.modes': ['human']}
+    metadata = {'render.modes': ['human'], 'render_modes': ['human'], 'render_fps': 5}
     
     def __init__(self, video=False, grid_size=[5,5], cell_size=30):
         super(Snake_Env, self).__init__()
@@ -17,13 +17,11 @@ class Snake_Env(gym.Env):
         # Spazio delle azioni (4 direzioni: 0=Su, 1=Destra, 2=Giù, 3=Sinistra)        
         self.action_space = spaces.Discrete(4)
         # Spazio delle osservazioni: griglia con valori 0 (vuoto), 1 (testa del serpente), 2 (cibo)
-        self.observation_space = spaces.Box(low=0, high=2, shape=self.grid_size, dtype=np.int32)
+        self.observation_space = spaces.Box(low=0, high=2, shape=(self.grid_size[0]*self.grid_size[1],), dtype=np.int32)
         
         self.grid = Grid(grid_size)
         
         self.video = video
-        if self.video:
-            self.game = Game(grid_size, cell_size)
         
     def step(self, action: np.int32):
         """ Permette di effettuare un azione nel gioco.
@@ -44,15 +42,16 @@ class Snake_Env(gym.Env):
         elif action == LEFT:  # Sinistra
             direction = DIRECTION_LEFT
         self.last_obs, reward, done, info = self.grid.step(direction)
-        return  self.last_obs, reward, done, info
+        return  self.last_obs, reward, done, False, info
     
-    def reset(self):
+    def reset(self, seed=None, options=None):
         if self.video:
             self.game = Game(self.grid_size, self.cell_size)
         self.grid.reset()
-        return self.grid._get_obs()
+        
+        return self.grid._get_obs(), {}
     
-    def render(self):
+    def render(self, mode='human'):
         if self.video:
             self.game.render(self.grid.get_grid_color())
         

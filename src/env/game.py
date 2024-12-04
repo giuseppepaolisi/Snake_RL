@@ -1,5 +1,4 @@
 import pygame
-import random
 import numpy as np
 from .snake.const.colors import BODY_COLOR, FOOD_COLOR, HEAD_COLOR, SPACE_COLOR
 
@@ -8,7 +7,7 @@ class Game():
         Gestisce la grafica del gioco Snake.
     """
     
-    def __init__(self, grid_size=(10, 10), cell_size=20):
+    def __init__(self, grid_size=(10, 10), cell_size=20, fps=5):
         """ Inizializza la grafica di gioco.
 
         Args:
@@ -19,6 +18,7 @@ class Game():
         
         self.grid_size = grid_size
         self.cell_size = cell_size
+        self.fps = fps
         self.grid = np.zeros(self.grid_size, dtype=np.int32)
         
         self.screen = pygame.display.set_mode((grid_size[1] * cell_size, grid_size[0] * cell_size))
@@ -33,7 +33,6 @@ class Game():
             grid_color (_type_): Grigli con i colori come occorrenze.
         """
         self.grid = grid_color
-
         # Renderizza la griglia sulla finestra
         self.screen.fill(SPACE_COLOR)  # Sfondo
         for x in range(self.grid_size[0]):
@@ -43,7 +42,7 @@ class Game():
                 pygame.draw.rect(self.screen, color, rect)
 
         pygame.display.flip()
-        self.clock.tick(5)
+        self.clock.tick(self.fps)
     
     def close(self):
         """
