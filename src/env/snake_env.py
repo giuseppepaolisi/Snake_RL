@@ -123,6 +123,7 @@ class Snake_Env(gym.Env):
 
         # Stato iniziale del gioco
         self.snake_body = []
+        self.direction = DIRECTION_RIGHT
         self.apple_location = None
         self.score = 0
         self.graphics = GameGraphics(size, self.window_size)
@@ -204,6 +205,16 @@ class Snake_Env(gym.Env):
          # Mappa l'azione a una direzione.
         directions = {UP: DIRECTION_UP, RIGHT: DIRECTION_RIGHT, DOWN: DIRECTION_DOWN, LEFT: DIRECTION_LEFT}
         direction = directions[action]
+        
+        opposites = {
+            DIRECTION_UP: DIRECTION_DOWN,
+            DIRECTION_DOWN: DIRECTION_UP,
+            DIRECTION_LEFT: DIRECTION_RIGHT,
+            DIRECTION_RIGHT: DIRECTION_LEFT,
+        }
+        if direction == opposites[self.direction]:
+            # Mantieni la direzione attuale se l'azione è opposta
+            direction = self.direction
 
         # Calcola la nuova posizione della testa
         new_head = self.snake_body[0] + direction
@@ -226,6 +237,8 @@ class Snake_Env(gym.Env):
         else:
             reward = REWARD_STEP
             self.snake_body.pop()
+            
+        self.direction = direction
 
         # Renderizza il gioco se la modalità è "human".
         if self.render_mode == "human":
