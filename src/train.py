@@ -24,6 +24,7 @@ class Train:
         
     def train(self):
         total_rewards = []
+        eps = []
         for episode in range(self.episodes):
             state, info = self.env.reset()
             total_reward = 0
@@ -52,7 +53,9 @@ class Train:
                    
             print(f"Episode {episode + 1}/{self.episodes}, Total Reward: {total_reward}, Score: {info['score']}")
             total_rewards.append(total_reward)
-
+            if episode % 1 == 0:
+                eps.append(self.agent.epsilon)
+        print(eps)
         model_path = f'models/snake_q_agent_{self.episodes}.pkl'
         self.agent.save(model_path)
         print(f"Modello salvato in {model_path}")

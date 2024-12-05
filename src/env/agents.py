@@ -4,13 +4,17 @@ import os
 
 # Classe base per gli agenti
 class BaseAgent:
-    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01):
+    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01, episodes = 1000):
         self.state_size = state_size
         self.action_size = action_size
         self.epsilon = epsilon
-        self.epsilon_decay = epsilon_decay
-        self.epsilon_min = epsilon_min
         self.learning_rate = learning_rate
+        
+        self.epsilon_min = epsilon_min
+        
+        self.start_epsilon_decay = 1
+        self.end_epsilon_decay = episodes // 2
+        self.epsilon_decay = self.epsilon / (self.end_epsilon_decay - self.start_epsilon_decay)
     
     def choose_action(self, state):
         raise NotImplementedError("Questo metodo deve essere implementato nella sottoclasse.")
@@ -20,10 +24,10 @@ class BaseAgent:
 
 # Agente Q-Learning
 class QLearningAgent(BaseAgent):
-    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, gamma=0.95, **kwargs):
-        super().__init__(state_size, action_size, learning_rate=0.01, epsilon=1.0, **kwargs)
+    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, gamma=0.95,  episodes = 1000, **kwargs):
+        super().__init__(state_size, action_size, learning_rate=0.01, epsilon=1.0,  episodes = 1000, **kwargs)
         self.gamma = gamma
-        
+        print(f"stampa epsilon: {self.epsilon} e {self.epsilon_decay}")
         self.q_table = {}
         
     def get_state_key(self, state):

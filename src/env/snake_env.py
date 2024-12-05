@@ -212,11 +212,12 @@ class Snake_Env(gym.Env):
             DIRECTION_LEFT: DIRECTION_RIGHT,
             DIRECTION_RIGHT: DIRECTION_LEFT,
         }
+        # Controlla se l'azione è un movimento opposto.
         if direction == opposites[self.direction]:
-            # Mantieni la direzione attuale se l'azione è opposta
-            direction = self.direction
+            # Azione nulla.
+            return self._get_obs(), REWARD_STEP, False, False, self._get_info()
 
-        # Calcola la nuova posizione della testa
+        # Calcola la nuova posizione della testa.
         new_head = self.snake_body[0] + direction
 
         # Collisioni corpo
