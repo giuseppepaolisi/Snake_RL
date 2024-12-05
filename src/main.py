@@ -13,16 +13,16 @@ def main():
 
     state_size = env.observation_space
     action_size = env.action_space.n
-    episodes=100000
+    episodes=50000
 
-    agent = QLearningAgent(state_size, action_size, learning_rate=0.01, gamma=0.95, epsilon=0.01)
+    agent = QLearningAgent(state_size, action_size, learning_rate=0.01, gamma=0.95, epsilon=0.3)
     max_steps=200
     #agent.load('models/snake_q_agent.pkl')
 
-    #train = Train(env, agent, episodes, max_steps=max_steps)
-    #train.train()
+    train = Train(env, agent, episodes, max_steps=max_steps)
+    train.train()
 
-    agent.load(f'models/snake_q_agent_{episodes}.pkl')
+    #agent.load(f'models/snake_q_agent_{episodes}.pkl')
     env = gym.make('Snake-v0', render_mode='human')
     num_episodes = 10
     for episode in range(num_episodes):
@@ -32,8 +32,8 @@ def main():
 
         print(f"--- Episodio {episode + 1} ---")
 
-        for step in range(max_steps):
-            env.render() 
+        while True:
+        #for step in range(max_steps):
             action = agent.choose_action(state)
             next_state, reward, done, truncated, info = env.step(action)
             total_reward += reward
