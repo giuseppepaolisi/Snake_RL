@@ -1,6 +1,6 @@
 from gym.envs.registration import register
 import gym
-from env.agents import QLearningAgent, Sarsa
+from agents import QLearningAgent, Sarsa
 import numpy as np
 from train import Train
 def main():
