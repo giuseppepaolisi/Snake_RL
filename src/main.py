@@ -13,9 +13,9 @@ def main():
 
     state_size = env.observation_space
     action_size = env.action_space.n
-    episodes=50
+    episodes=50000
 
-    agent = QLearningAgent(state_size, action_size, learning_rate=0.01, gamma=0.95, epsilon=0.3, episodes=episodes)
+    agent = QLearningAgent(state_size, action_size, learning_rate=0.01, gamma=0.95, epsilon=0.9, episodes=episodes)
     max_steps=200
     #agent.load('models/snake_q_agent.pkl')
 

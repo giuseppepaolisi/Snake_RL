@@ -25,6 +25,7 @@ class Train:
     def train(self):
         total_rewards = []
         eps = []
+        score = []
         for episode in range(self.episodes):
             state, info = self.env.reset()
             total_reward = 0
@@ -53,9 +54,8 @@ class Train:
                    
             print(f"Episode {episode + 1}/{self.episodes}, Total Reward: {total_reward}, Score: {info['score']}")
             total_rewards.append(total_reward)
-            if episode % 1 == 0:
-                eps.append(self.agent.epsilon)
-        print(eps)
+            eps.append(self.agent.epsilon)
+            score.append(info["score"])
         model_path = f'models/snake_q_agent_{self.episodes}.pkl'
         self.agent.save(model_path)
         print(f"Modello salvato in {model_path}")
@@ -64,9 +64,21 @@ class Train:
         rewards_path = f'metrics/total_rewards_{self.episodes}.npy'
         np.save(rewards_path, np.array(total_rewards))
         print(f"Ricompense totali salvate in {rewards_path}")
+        
+        # Salvataggio decremento epsilon
+        rewards_path = f'metrics/epsilon_decay_{self.episodes}.npy'
+        np.save(rewards_path, np.array(eps))
+        print(f"Ricompense totali salvate in {rewards_path}")
+        
+        # Salvataggio score
+        rewards_path = f'metrics/score_{self.episodes}.npy'
+        np.save(rewards_path, np.array(score))
+        print(f"Ricompense totali salvate in {rewards_path}")
 
         # Grafico delle metriche
         self.plot_metrics()
+        self.plot_eps()
+        self.plot_score()
         
         self.env.close()
     
@@ -77,7 +89,7 @@ class Train:
         rewards = np.load(rewards_path)
 
         # Calcola la media mobile
-        window_size = 100
+        window_size = 5
         moving_avg = np.convolve(rewards, np.ones((window_size,)) / window_size, mode="valid")
 
         # Grafico
@@ -90,3 +102,34 @@ class Train:
         plt.savefig(f'metrics/moving_average_rewards_{self.episodes}.png')
         plt.show()
     
+    def plot_eps(self):
+        # Carica i dati salvati
+        rewards_path = f'metrics/epsilon_decay_{self.episodes}.npy'
+        eps = np.load(rewards_path)
+
+        
+        # Grafico
+        plt.figure(figsize=(12, 6))
+        plt.plot(eps, label="Epsilon", color='red')
+        plt.xlabel("Episode")
+        plt.ylabel("Epsilon")
+        plt.title("Epsilon decay")
+        plt.legend()
+        plt.savefig(f'metrics/epsilon_decay_{self.episodes}.png')
+        plt.show()
+        
+    def plot_score(self):
+        # Carica i dati salvati
+        rewards_path = f'metrics/score_{self.episodes}.npy'
+        eps = np.load(rewards_path)
+
+        
+        # Grafico
+        plt.figure(figsize=(12, 6))
+        plt.plot(eps, label="Score", color='red')
+        plt.xlabel("Episode")
+        plt.ylabel("Score")
+        plt.title("Score")
+        plt.legend()
+        plt.savefig(f'metrics/score_{self.episodes}.png')
+        plt.show()

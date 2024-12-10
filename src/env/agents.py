@@ -1,20 +1,25 @@
 import numpy as np
 import pickle
 import os
+import math as math
 
 # Classe base per gli agenti
 class BaseAgent:
-    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01, episodes = 1000):
+    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.999, epsilon_min=0.01, episodes = 1000):
         self.state_size = state_size
         self.action_size = action_size
         self.epsilon = epsilon
         self.learning_rate = learning_rate
         
         self.epsilon_min = epsilon_min
+        self.epsilon_decay = epsilon_decay
+        self.steps = 0
+        self.episodes = episodes
+        self.epsilon_start = epsilon
         
         self.start_epsilon_decay = 1
         self.end_epsilon_decay = episodes // 2
-        self.epsilon_decay = self.epsilon / (self.end_epsilon_decay - self.start_epsilon_decay)
+        #self.epsilon_decay = self.epsilon / (self.end_epsilon_decay - self.start_epsilon_decay)
     
     def choose_action(self, state):
         raise NotImplementedError("Questo metodo deve essere implementato nella sottoclasse.")
@@ -24,10 +29,9 @@ class BaseAgent:
 
 # Agente Q-Learning
 class QLearningAgent(BaseAgent):
-    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, gamma=0.95,  episodes = 1000, **kwargs):
-        super().__init__(state_size, action_size, learning_rate=0.01, epsilon=1.0,  episodes = 1000, **kwargs)
+    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01, episodes = 1000, gamma=0.95):
+        super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes)
         self.gamma = gamma
-        print(f"stampa epsilon: {self.epsilon} e {self.epsilon_decay}")
         self.q_table = {}
         
     def get_state_key(self, state):
@@ -61,6 +65,8 @@ class QLearningAgent(BaseAgent):
             _type_: _description_
         """
         if np.random.rand() < self.epsilon:
+            # Incrementa steps per influenzare il calcolo della epsilon solo quando viene usata la random policy
+            self.steps += 1
             return np.random.choice(self.action_size)  # Esplora
         state_key = self.get_state_key(state)
         
@@ -100,7 +106,10 @@ class QLearningAgent(BaseAgent):
         self.q_table[state_key][action] = new_q
         
         # Decadimento epsilon
-        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+        #self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+        self.epsilon = self.epsilon_min + (self.epsilon_start - self.epsilon_min) * math.exp(
+            -1 * self.steps / self.episodes
+        )
         
     def save(self, filepath):
         """Salva il modello"""
