@@ -1,6 +1,6 @@
 from gym.envs.registration import register
 import gym
-from env.agents import QLearningAgent
+from env.agents import QLearningAgent, Sarsa
 import numpy as np
 from train import Train
 def main():
@@ -15,7 +15,7 @@ def main():
     action_size = env.action_space.n
     episodes=50000
 
-    agent = QLearningAgent(state_size, action_size, learning_rate=0.01, gamma=0.95, epsilon=0.9, episodes=episodes)
+    agent = Sarsa(state_size, action_size, learning_rate=0.01, gamma=0.95, epsilon=0.9, episodes=episodes)
     max_steps=200
     #agent.load('models/snake_q_agent.pkl')
 

@@ -1,6 +1,4 @@
 
-import torch
-from env.agents import QLearningAgent
 from env.snake_env import Snake_Env
 
 import matplotlib.pyplot as plt
@@ -11,7 +9,7 @@ import numpy as np
         
 class Train:
     
-    def __init__(self, env: Snake_Env, agent: QLearningAgent, episodes=1000, max_steps=200) -> None:
+    def __init__(self, env: Snake_Env, agent, episodes=1000, max_steps=200) -> None:
         self.episodes = episodes
         self.env = env
         self.agent = agent
@@ -23,6 +21,7 @@ class Train:
         
         
     def train(self):
+        model_name = self.agent.get_model()
         total_rewards = []
         eps = []
         score = []
@@ -56,22 +55,22 @@ class Train:
             total_rewards.append(total_reward)
             eps.append(self.agent.epsilon)
             score.append(info["score"])
-        model_path = f'models/snake_q_agent_{self.episodes}.pkl'
+        model_path = f'models/snake_{model_name}_{self.episodes}.pkl'
         self.agent.save(model_path)
         print(f"Modello salvato in {model_path}")
         
         # Salvataggio ricompense totali
-        rewards_path = f'metrics/total_rewards_{self.episodes}.npy'
+        rewards_path = f'metrics/total_rewards_{model_name}_{self.episodes}.npy'
         np.save(rewards_path, np.array(total_rewards))
         print(f"Ricompense totali salvate in {rewards_path}")
         
         # Salvataggio decremento epsilon
-        rewards_path = f'metrics/epsilon_decay_{self.episodes}.npy'
+        rewards_path = f'metrics/epsilon_decay_{model_name}_{self.episodes}.npy'
         np.save(rewards_path, np.array(eps))
         print(f"Ricompense totali salvate in {rewards_path}")
         
         # Salvataggio score
-        rewards_path = f'metrics/score_{self.episodes}.npy'
+        rewards_path = f'metrics/score_{model_name}_{self.episodes}.npy'
         np.save(rewards_path, np.array(score))
         print(f"Ricompense totali salvate in {rewards_path}")
 
