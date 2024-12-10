@@ -2,7 +2,7 @@ import gym
 from gym import spaces
 import pygame
 import numpy as np
-from .snake.const.rewards import REWARD_COLLISION, REWARD_COLLISION_SELF, REWARD_FOOD, REWARD_STEP
+from .snake.const.rewards import REWARD_COLLISION, REWARD_COLLISION_SELF, REWARD_FOOD, REWARD_STEP, REWARD_MOVE
 from .snake.const.actions import UP, RIGHT, DOWN, LEFT, DIRECTION_UP, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT
 from .snake.const.colors import BODY_COLOR, FOOD_COLOR, HEAD_COLOR, SPACE_COLOR
 from .snake.point import Point
@@ -215,7 +215,7 @@ class Snake_Env(gym.Env):
         # Controlla se l'azione è un movimento opposto.
         if direction == opposites[self.direction]:
             # Azione nulla.
-            return self._get_obs(), REWARD_STEP, False, False, self._get_info()
+            return self._get_obs(), REWARD_MOVE, False, False, self._get_info()
 
         # Calcola la nuova posizione della testa.
         new_head = self.snake_body[0] + direction
