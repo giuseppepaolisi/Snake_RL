@@ -2,15 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def plot_combined_metric(metric, episode, agents):
-    """
-    Plots the combined metric (e.g., score or reward) for multiple agents.
-
-    Args:
-        metric (str): The metric to plot (e.g., 'score', 'reward').
-        episodes (int): The number of episodes for which data is available.
-        agents (list): A list of tuples, each containing an agent and its label.
-                       Example: [(sarsa_agent, 'Sarsa'), (q_learning_agent, 'Q-Learning')]
-    """
+    
     plt.figure(figsize=(12, 6))
 
     for agent, label in agents:
