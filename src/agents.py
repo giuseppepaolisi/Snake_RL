@@ -242,4 +242,6 @@ class Sarsa(BaseAgent):
         self.q_table[state_key][action] = new_q
 
         # Aggiorna epsilon
-        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+        self.epsilon = self.epsilon_min + (self.epsilon_start - self.epsilon_min) * math.exp(
+            -1 * self.steps / self.episodes
+        )
