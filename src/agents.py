@@ -2,6 +2,11 @@ import numpy as np
 import pickle
 import os
 import math as math
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import random
+from collections import deque
 
 # Classe base per gli agenti
 class BaseAgent:
@@ -72,8 +77,8 @@ class BaseAgent:
             print(f"Errore durante il caricamento: {e}")
             return False
         
-    def get_model(self):
-        pass
+    def get_model(self) -> str:
+        return ""
 
 # Agente Q-Learning
 class QLearningAgent(BaseAgent):
@@ -83,7 +88,7 @@ class QLearningAgent(BaseAgent):
         self.q_table = {}
     
     def get_model(self):
-        return "q-learning"
+        return "Q-Learning"
         
     def get_state_key(self, state):
         """
@@ -170,7 +175,7 @@ class Sarsa(BaseAgent):
         self.q_table = {}
     
     def get_model(self):
-        return "sarsa"
+        return "SARSA"
         
     def get_state_key(self, state):
         """
@@ -245,3 +250,154 @@ class Sarsa(BaseAgent):
         self.epsilon = self.epsilon_min + (self.epsilon_start - self.epsilon_min) * math.exp(
             -1 * self.steps / self.episodes
         )
+
+class DQNAgent(BaseAgent):
+    def __init__(self, state_size, action_size, learning_rate=0.001, epsilon=1.0, 
+                 epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, gamma=0.95,
+                 hidden_size=64, batch_size=64, memory_size=10000):
+        super().__init__(state_size, action_size, learning_rate, epsilon, 
+                        epsilon_decay, epsilon_min, episodes)
+        self.gamma = gamma
+        self.batch_size = batch_size
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # Determina la dimensione corretta dell'input
+        self.input_size = state_size
+        
+        # Rete Neurale
+        self.policy_net = DQN(self.input_size, hidden_size, action_size).to(self.device)
+        self.target_net = DQN(self.input_size, hidden_size, action_size).to(self.device)
+        self.target_net.load_state_dict(self.policy_net.state_dict())
+        
+        self.optimizer = optim.Adam(self.policy_net.parameters(), lr=learning_rate)
+        self.memory = deque(maxlen=memory_size)
+    
+    def get_model(self):
+        return "DQN"
+    
+    def get_state_tensor(self, state):
+        # Appiattisce la rappresentazione dello stato
+        state_list = []
+        
+        # Aggiunge le posizioni del corpo del serpente
+        for pos in state['snake']:
+            state_list.extend([pos[0] / (self.state_size - 1), pos[1] / (self.state_size - 1)])
+        
+        # Aggiunge la posizione della mela
+        state_list.extend([
+            state['apple'][0] / (self.state_size - 1), 
+            state['apple'][1] / (self.state_size - 1)
+        ])
+        
+        # Assicura di avere sempre una rappresentazione dello stato di lunghezza fissa
+        while len(state_list) < self.input_size:
+            state_list.append(0.0)
+        
+        # Tronca se troppo lungo
+        state_list = state_list[:self.input_size]
+        
+        return torch.FloatTensor(state_list).to(self.device)
+    
+    def choose_action(self, state):
+        if random.random() < self.epsilon:
+            self.steps += 1
+            return random.randrange(self.action_size)
+        
+        with torch.no_grad():
+            state_tensor = self.get_state_tensor(state).unsqueeze(0)
+            q_values = self.policy_net(state_tensor)
+            return q_values.argmax().item()
+    
+    def update(self, state, action, reward, next_state, done):
+        # Memorizza la transizione nella memoria
+        self.memory.append((state, action, reward, next_state, done))
+        
+        if len(self.memory) < self.batch_size:
+            return
+        
+        # Campiona un batch casuale dalla memoria
+        batch = random.sample(self.memory, self.batch_size)
+        states, actions, rewards, next_states, dones = zip(*batch)
+        
+        # Converte in tensori
+        state_batch = torch.stack([self.get_state_tensor(s) for s in states])
+        action_batch = torch.LongTensor(actions).to(self.device)
+        reward_batch = torch.FloatTensor(rewards).to(self.device)
+        next_state_batch = torch.stack([self.get_state_tensor(s) for s in next_states])
+        done_batch = torch.FloatTensor(dones).to(self.device)
+        
+        # Calcola i valori Q correnti
+        current_q_values = self.policy_net(state_batch).gather(1, action_batch.unsqueeze(1))
+        
+        # Calcola i valori Q successivi
+        with torch.no_grad():
+            next_q_values = self.target_net(next_state_batch).max(1)[0]
+            target_q_values = reward_batch + (1 - done_batch) * self.gamma * next_q_values
+        
+        # Calcola la perdita e aggiorna
+        loss = nn.MSELoss()(current_q_values.squeeze(), target_q_values)
+        
+        # Discesa del gradiente
+        self.optimizer.zero_grad()
+        loss.backward()
+        # Taglia i gradienti per prevenire l'esplosione dei gradienti
+        torch.nn.utils.clip_grad_norm_(self.policy_net.parameters(), max_norm=1.0)
+        self.optimizer.step()
+        
+        # Aggiorna la rete target periodicamente
+        if self.steps % 100 == 0:
+            self.target_net.load_state_dict(self.policy_net.state_dict())
+        
+        # Aggiorna epsilon
+        self.epsilon = self.epsilon_min + (self.epsilon_start - self.epsilon_min) * math.exp(
+            -1 * self.steps / self.episodes
+        )
+        
+    def save(self, filepath):
+        """Salva il modello"""
+        try:
+            # Salva tutti i parametri necessari
+            save_data = {
+                'policy_net': self.policy_net.state_dict(),
+                'target_net': self.target_net.state_dict(),
+                'epsilon': self.epsilon,
+                'steps': self.steps,
+                'optimizer': self.optimizer.state_dict(),
+            }
+            torch.save(save_data, filepath)
+            print(f"Modello salvato con successo in {filepath}")
+        except Exception as e:
+            print(f"Errore durante il salvataggio: {e}")
+    
+    def load(self, filepath):
+        """carica il modello"""
+        if not os.path.exists(filepath):
+            print(f"File non trovato: {filepath}")
+            return False
+        
+        try:
+            save_data = torch.load(filepath)
+            self.policy_net.load_state_dict(save_data['policy_net'])
+            self.target_net.load_state_dict(save_data['target_net'])
+            self.epsilon = save_data['epsilon']
+            self.steps = save_data['steps']
+            self.optimizer.load_state_dict(save_data['optimizer'])
+            print(f"Modello caricato con successo da {filepath}")
+            return True
+        except Exception as e:
+            print(f"Errore durante il caricamento: {e}")
+            return False
+        
+class DQN(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(DQN, self).__init__()
+        self.network = nn.Sequential(
+            nn.Linear(input_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, output_size)
+        )
+    
+    def forward(self, x):
+        return self.network(x)
