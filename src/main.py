@@ -3,6 +3,9 @@ import gym
 from agents import QLearningAgent, Sarsa
 import numpy as np
 from train import Train
+from metrics_plotter import plot_combined_metric
+
+
 def main():
     register(
         id='Snake-v0',
@@ -27,6 +30,13 @@ def main():
     q_learning_agent_train.train()
 
     #agent.load(f'models/snake_q_agent_{episodes}.pkl')
+    
+    # Dopo l'addestramento di entrambi gli agenti, genera grafico combinato per lo score
+    plot_combined_metric(
+        metric='score',
+        episode=episodes,
+        agents=[(sarsa_agent, 'Sarsa'), (q_learning_agent, 'Q-Learning')]
+    )
     
     #Esecuzione di entrambi gli agent per testare le loro performance
     for agent, agent_name in zip ([sarsa_agent, q_learning_agent], ['Sarsa', 'Q-Learning']):

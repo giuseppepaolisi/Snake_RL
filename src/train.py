@@ -1,12 +1,9 @@
-
 from env.snake_env import Snake_Env
-
 import matplotlib.pyplot as plt
 import os
 import json
 import numpy as np
 
-        
 class Train:
     
     def __init__(self, env: Snake_Env, agent, episodes=1000, max_steps=200) -> None:
@@ -19,7 +16,7 @@ class Train:
         os.makedirs('models', exist_ok=True)
         os.makedirs('metrics', exist_ok=True)
         
-        
+  
     def train(self):
         model_name = self.agent.get_model()
         total_rewards = []
@@ -55,6 +52,7 @@ class Train:
             total_rewards.append(total_reward)
             eps.append(self.agent.epsilon)
             score.append(info["score"])
+            
         model_path = f'models/snake_{model_name}_{self.episodes}.pkl'
         self.agent.save(model_path)
         print(f"Modello salvato in {model_path}")
@@ -78,7 +76,7 @@ class Train:
         self.plot_metrics()
         self.plot_eps()
         self.plot_score()
-        
+                
         self.env.close()
     
     def plot_metrics(self):
@@ -96,7 +94,7 @@ class Train:
         plt.plot(range(window_size, len(rewards) + 1), moving_avg, label="Moving Average", color='red')
         plt.xlabel("Episode")
         plt.ylabel("Reward")
-        plt.title("Moving Average of Rewards")
+        plt.title(f"Moving Average of Rewards ({self.agent.get_model()})")
         plt.legend()
         plt.savefig(f'metrics/moving_average_rewards_{self.episodes}.png')
         plt.show()
@@ -106,13 +104,12 @@ class Train:
         rewards_path = f'metrics/epsilon_decay_{self.agent.get_model()}_{self.episodes}.npy'
         eps = np.load(rewards_path)
 
-        
         # Grafico
         plt.figure(figsize=(12, 6))
         plt.plot(eps, label="Epsilon", color='red')
         plt.xlabel("Episode")
         plt.ylabel("Epsilon")
-        plt.title("Epsilon decay")
+        plt.title(f"Epsilon decay ({self.agent.get_model()})")
         plt.legend()
         plt.savefig(f'metrics/epsilon_decay_{self.episodes}.png')
         plt.show()
@@ -121,14 +118,15 @@ class Train:
         # Carica i dati salvati
         rewards_path = f'metrics/score_{self.agent.get_model()}_{self.episodes}.npy'
         eps = np.load(rewards_path)
-
         
         # Grafico
         plt.figure(figsize=(12, 6))
         plt.plot(eps, label="Score", color='red')
         plt.xlabel("Episode")
         plt.ylabel("Score")
-        plt.title("Score")
+        plt.title(f"Score ({self.agent.get_model()})")
         plt.legend()
         plt.savefig(f'metrics/score_{self.episodes}.png')
         plt.show()
+        
+    
