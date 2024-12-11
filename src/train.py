@@ -84,7 +84,7 @@ class Train:
     def plot_metrics(self):
         """Genera grafici delle metriche raccolte."""
         # Carica i dati salvati
-        rewards_path = f'metrics/total_rewards_{self.episodes}.npy'
+        rewards_path = f'metrics/total_rewards_{self.agent.get_model()}_{self.episodes}.npy'
         rewards = np.load(rewards_path)
 
         # Calcola la media mobile
@@ -103,7 +103,7 @@ class Train:
     
     def plot_eps(self):
         # Carica i dati salvati
-        rewards_path = f'metrics/epsilon_decay_{self.episodes}.npy'
+        rewards_path = f'metrics/epsilon_decay_{self.agent.get_model()}_{self.episodes}.npy'
         eps = np.load(rewards_path)
 
         
@@ -119,7 +119,7 @@ class Train:
         
     def plot_score(self):
         # Carica i dati salvati
-        rewards_path = f'metrics/score_{self.episodes}.npy'
+        rewards_path = f'metrics/score_{self.agent.get_model()}_{self.episodes}.npy'
         eps = np.load(rewards_path)
 
         
