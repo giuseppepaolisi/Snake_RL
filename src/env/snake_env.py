@@ -135,7 +135,7 @@ class Snake_Env(gym.Env):
         )
         self.snake_body = [head]
         direction = self.np_random.choice([DIRECTION_UP, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT])
-        for _ in range(2):
+        for _ in range(1):
             new_segment = Point(
                 *np.clip(
                     np.array(head.get_point()) - np.array(direction.get_point()),
