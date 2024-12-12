@@ -86,6 +86,7 @@ class QLearningAgent(BaseAgent):
         super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes)
         self.gamma = gamma
         self.q_table = {}
+        self.size=5
     
     def get_model(self):
         return "Q-Learning"
@@ -95,9 +96,40 @@ class QLearningAgent(BaseAgent):
         Converte lo stato in una chiave univoca per la Q-table.
         Lo stato è un dizionario che concatena le coordinate di "snake" e "apple"
         """
-        snake_body = tuple(tuple(coord) for coord in state["snake"])
-        apple_location = tuple(state["apple"])
-        return snake_body, apple_location
+        snake_head = state["snake"][0]
+        apple = state["apple"]
+        
+        # Calcolo distanze e direzioni
+        horizontal_distance = apple[0] - snake_head[0]
+        vertical_distance = apple[1] - snake_head[1]
+        
+        # Direzione relativa della mela
+        apple_direction = (
+            1 if horizontal_distance > 0 else -1,  # Destra/Sinistra
+            1 if vertical_distance > 0 else -1     # Sotto/Sopra
+        )
+        
+        # Prossimità a bordi e rischi
+        proximity_to_wall = (
+            snake_head[0] == 0,  # Vicino bordo sinistro
+            snake_head[0] == self.size - 1,  # Vicino bordo destro
+            snake_head[1] == 0,  # Vicino bordo superiore
+            snake_head[1] == self.size - 1   # Vicino bordo inferiore
+        )
+        
+        # Rischio di collisione con se stesso
+        body_proximity = any(
+            abs(snake_head[0] - body[0]) <= 1 and 
+            abs(snake_head[1] - body[1]) <= 1 
+            for body in state["snake"][1:]
+        )
+        
+        return (
+            apple_direction,
+            proximity_to_wall,
+            body_proximity,
+            len(state["snake"])  # Lunghezza attuale del serpente
+        )
     
     def get_q_value(self, state, action):
         """
@@ -122,12 +154,12 @@ class QLearningAgent(BaseAgent):
         """
         if np.random.rand() < self.epsilon:
             # Incrementa steps per influenzare il calcolo della epsilon solo quando viene usata la random policy
-            self.steps += 1
             return np.random.choice(self.action_size)  # Esplora
         state_key = self.get_state_key(state)
         
         if state_key not in self.q_table:
-            self.q_table[state_key] = np.zeros(self.action_size)
+            # Inizializzazione con bias verso l'esplorazione
+            self.q_table[state_key] = np.random.uniform(-1, 1, self.action_size)
         
         return np.argmax(self.q_table[state_key]) # sfrutta
 
@@ -166,6 +198,7 @@ class QLearningAgent(BaseAgent):
         self.epsilon = self.epsilon_min + (self.epsilon_start - self.epsilon_min) * math.exp(
             -1 * self.steps / self.episodes
         )
+        self.steps += 1
         
 
 class Sarsa(BaseAgent):
@@ -209,7 +242,6 @@ class Sarsa(BaseAgent):
         """
         if np.random.rand() < self.epsilon:
             # Incrementa steps per influenzare il calcolo della epsilon solo quando viene usata la random policy
-            self.steps += 1
             return np.random.choice(self.action_size)  # Esplora
         state_key = self.get_state_key(state)
         
@@ -250,6 +282,7 @@ class Sarsa(BaseAgent):
         self.epsilon = self.epsilon_min + (self.epsilon_start - self.epsilon_min) * math.exp(
             -1 * self.steps / self.episodes
         )
+        self.steps += 1
 
 class DQNAgent(BaseAgent):
     def __init__(self, state_size, action_size, learning_rate=0.001, epsilon=1.0, 
@@ -300,7 +333,6 @@ class DQNAgent(BaseAgent):
     
     def choose_action(self, state):
         if random.random() < self.epsilon:
-            self.steps += 1
             return random.randrange(self.action_size)
         
         with torch.no_grad():
@@ -352,6 +384,7 @@ class DQNAgent(BaseAgent):
         self.epsilon = self.epsilon_min + (self.epsilon_start - self.epsilon_min) * math.exp(
             -1 * self.steps / self.episodes
         )
+        self.steps += 1
         
     def save(self, filepath):
         """Salva il modello"""
