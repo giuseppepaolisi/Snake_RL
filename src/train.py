@@ -96,7 +96,7 @@ class Train:
         plt.ylabel("Reward")
         plt.title(f"Moving Average of Rewards ({self.agent.get_model()})")
         plt.legend()
-        plt.savefig(f'metrics/moving_average_rewards_{self.episodes}.png')
+        plt.savefig(f'metrics/moving_average_rewards_{self.agent.get_model()}_{self.episodes}.png')
         plt.show()
     
     def plot_eps(self):
@@ -111,7 +111,7 @@ class Train:
         plt.ylabel("Epsilon")
         plt.title(f"Epsilon decay ({self.agent.get_model()})")
         plt.legend()
-        plt.savefig(f'metrics/epsilon_decay_{self.episodes}.png')
+        plt.savefig(f'metrics/epsilon_decay_{self.agent.get_model()}_{self.episodes}.png')
         plt.show()
         
     def plot_score(self):
@@ -126,7 +126,7 @@ class Train:
         plt.ylabel("Score")
         plt.title(f"Score ({self.agent.get_model()})")
         plt.legend()
-        plt.savefig(f'metrics/score_{self.episodes}.png')
+        plt.savefig(f'metrics/score_{self.agent.get_model()}_{self.episodes}.png')
         plt.show()
         
     
