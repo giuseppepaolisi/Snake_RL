@@ -114,7 +114,7 @@ class Snake_Env(gym.Env):
             # 1. La posizione del serpente come lista di segmenti (coordinate x, y)
             # 2. La posizione della mela come una coppia di coordinate (x, y).
         self.observation_space = spaces.Dict({
-            "snake": spaces.Box(low=0, high=size - 1, shape=(size, 2), dtype=int),
+            "snake": spaces.Box(low=0, high=size - 1, shape=(2, size), dtype=int),
             "apple": spaces.Box(low=0, high=size - 1, shape=(2,), dtype=int),
         })
         
@@ -215,7 +215,9 @@ class Snake_Env(gym.Env):
         # Controlla se l'azione è un movimento opposto.
         if direction == opposites[self.direction]:
             # Azione nulla.
-            return self._get_obs(), REWARD_MOVE, False, False, self._get_info()
+            #return self._get_obs(), REWARD_MOVE, False, False, self._get_info()
+            # Viene mantenuta la direzione precedente.
+            direction = self.direction
 
         # Calcola la nuova posizione della testa.
         new_head = self.snake_body[0] + direction
