@@ -32,6 +32,14 @@ class BaseAgent:
     def decay_epsilon(self):
         self.epsilon = max(self.epsilon * self.epsilon_decay, self.epsilon_min)
     
+    def decay_linear(self):
+        # Calcola il decadimento lineare
+        decay_rate = (self.epsilon_start - self.epsilon_min) / self.episodes
+        self.epsilon = max(
+            self.epsilon_min, 
+            self.epsilon - decay_rate
+        )
+    
     def save(self, filepath):
         """Salva il modello"""
         try:
@@ -139,7 +147,7 @@ class QLearningAgent(BaseAgent):
         state_key = self.get_state_key(state)
         
         if state_key not in self.q_table:
-            self.q_table[state_key] = np.zeros(self.action_size)
+            self.q_table[state_key] = np.random.uniform(-1, 1, self.action_size)
         
         return self.q_table[state_key][action]
     
@@ -182,14 +190,14 @@ class QLearningAgent(BaseAgent):
         else:
             max_next_q = np.max(self.q_table.get(
                 self.get_state_key(next_state), 
-                np.zeros(self.action_size)
+                np.random.uniform(-1, 1, self.action_size)
             ))
         
         new_q = current_q + self.learning_rate * (reward + self.gamma * max_next_q - current_q)
         
         state_key = self.get_state_key(state)
         if state_key not in self.q_table:
-            self.q_table[state_key] = np.zeros(self.action_size)
+            self.q_table[state_key] = np.random.uniform(-1, 1, self.action_size)
         
         self.q_table[state_key][action] = new_q
         
@@ -199,7 +207,7 @@ class QLearningAgent(BaseAgent):
             -1 * self.steps / self.episodes
         )
         self.steps += 1
-        
+        self.epsilon = max(self.epsilon_min, self.epsilon)
 
 class Sarsa(BaseAgent):
     def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01, episodes = 1000, gamma=0.95):
