@@ -223,9 +223,22 @@ class Sarsa(BaseAgent):
         Converte lo stato in una chiave univoca per la Q-table.
         Lo stato è un dizionario che concatena le coordinate di "snake" e "apple"
         """
-        snake_body = tuple(tuple(coord) for coord in state["snake"])
-        apple_location = tuple(state["apple"])
-        return snake_body, apple_location
+        snake_head = state["snake"][0]
+        apple = state["apple"]
+        orientation = state["orientation"]
+        distance = state["distance_to_apple"][0]
+        relative_direction = state["relative_direction"]       
+        
+        # Discretizza alcuni valori per rendere la chiave gestibile
+        distance_bucket = min(int(distance * 5), 10)  # Discretizza distanza
+        
+        return (
+            tuple(snake_head),  # Posizione testa
+            tuple(apple),  # Posizione mela
+            orientation,  # Orientamento serpente
+            distance_bucket,  # Distanza discretizzata
+            tuple(np.round(relative_direction, 1))  # Direzione relativa arrotondata
+        )
 
     def get_q_value(self, state, action):
         """
