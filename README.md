@@ -31,7 +31,7 @@ This project implements a Snake game environment and trains various reinforcemen
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/[your-username]/Snake_RL.git
+git clone https://github.com/giuseppepaolisi/Snake_RL.git
 cd Snake_RL
 ```
 
@@ -85,6 +85,7 @@ Training metrics are saved in the `metrics` directory. You can visualize the tra
 
 (Add graphs or charts of training metrics)
 
+##
 Copyright © 2024
 [Giuseppe Paolisi](https://github.com/giuseppepaolisi)
 [Cristian Fulchini](https://github.com/cris83040).
