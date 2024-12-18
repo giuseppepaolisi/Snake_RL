@@ -2,7 +2,7 @@ import gym
 from gym import spaces
 import pygame
 import numpy as np
-from .snake.const.rewards import REWARD_COLLISION, REWARD_COLLISION_SELF, REWARD_FOOD, REWARD_STEP, REWARD_MOVE
+from .snake.const.rewards import REWARD_COLLISION, REWARD_COLLISION_SELF, REWARD_FOOD, REWARD_STEP_TO_FOOD, REWARD_STEP_NO_FOOD
 from .snake.const.actions import FORWARD, RIGHT, LEFT, ORIENTATION_UP, ORIENTATION_RIGHT, ORIENTATION_DOWN, ORIENTATION_LEFT, DIRECTION_UP, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT
 from .snake.const.colors import BODY_COLOR, FOOD_COLOR, HEAD_COLOR, SPACE_COLOR
 from .snake.point import Point
@@ -117,6 +117,8 @@ class Snake_Env(gym.Env):
             "snake": spaces.Box(low=0, high=size - 1, shape=(2, size), dtype=int),
             "apple": spaces.Box(low=0, high=size - 1, shape=(2,), dtype=int),
             "orientation": spaces.Discrete(4),  # 0: UP, 1: RIGHT, 2: DOWN, 3: LEFT
+            "distance_to_apple": spaces.Box(low=0, high=np.sqrt(2*size**2), shape=(1,), dtype=float),
+            "relative_direction": spaces.Box(low=-1, high=1, shape=(2,), dtype=float)
         })
         
         # Spazio delle azioni (forward=0, right=1, left=2)
@@ -129,6 +131,9 @@ class Snake_Env(gym.Env):
         self.apple_location = None
         self.score = 0
         self.graphics = GameGraphics(size, self.window_size)
+        
+        # Traccia della distanza iniziale per calcolare reward
+        self.initial_distance = None
 
     def _generate_snake(self):
         """Genera il serpente in una posizione casuale."""
@@ -173,6 +178,10 @@ class Snake_Env(gym.Env):
         self._generate_snake()
         self._generate_apple()
         self.score = 0
+        
+        # Calcolo distanza iniziale per calcolare reward
+        self.initial_distance = self._calculate_distance()
+        
         if self.render_mode == "human":
             self.graphics.render(self.snake_body, self.apple_location, self.metadata["render_fps"])
         return self._get_obs(), self._get_info()
@@ -191,10 +200,16 @@ class Snake_Env(gym.Env):
             ORIENTATION_LEFT: 3
         }
         
+        # Calcola distanza e direzione correnti
+        current_distance = self._calculate_distance()
+        current_direction = self._get_relative_direction()
+        
         return {
             "snake": np.array([segment.get_point() for segment in self.snake_body]),
             "apple": np.array(self.apple_location.get_point()),
-            "orientation": orientation_to_int[self.orientation]
+            "orientation": orientation_to_int[self.orientation],
+            "distance_to_apple": np.array([current_distance]),
+            "relative_direction": current_direction,
         }
 
     def _get_info(self):
@@ -263,6 +278,9 @@ class Snake_Env(gym.Env):
             self.orientation = ORIENTATION_DOWN
         elif direction == DIRECTION_LEFT:
             self.orientation = ORIENTATION_LEFT
+        
+        # Calcola distanza dopo il movimento
+        final_distance = self._calculate_distance()
 
         # Controlla se il cibo è stato mangiat
         if new_head == self.apple_location:
@@ -270,7 +288,12 @@ class Snake_Env(gym.Env):
             reward = REWARD_FOOD
             self._generate_apple()
         else:
-            reward = REWARD_STEP
+            # Controlla se si sta avvicinando al cibo
+            if final_distance < self.initial_distance:
+                reward = REWARD_STEP_TO_FOOD # Ricompensa per ogni passo effettuato nella direzione del cibo.
+            else:
+                reward = REWARD_STEP_NO_FOOD
+            self.initial_distance = final_distance # Penalità per ogni passo effettuato senza andare nella direzione del cibo.
             self.snake_body.pop()
             
         self.direction = direction
@@ -291,3 +314,24 @@ class Snake_Env(gym.Env):
         """ Chiusura ambiente e rilascio risorse
         """
         self.graphics.close()
+        
+    def _calculate_distance(self):
+        """ Calcola la distanza dalla mela usanso la Distanza Euclidea
+
+        Returns:
+            float: Distanza euclidea tra mela e testa del serpente
+        """
+        return np.sqrt((self.snake_body[0].get_x() - self.apple_location.get_x())**2 + (self.snake_body[0].get_y() - self.apple_location.get_y())**2)
+    
+    def _get_relative_direction(self):
+        """Restituisce una rappresentazione della direzione relativa della mela rispetto al serpente come vettore (dx, dy)
+
+        Returns:
+            (float, float): Vettore rappresentante la direzione relativa della mela rispetto al serpente
+        """
+        dx = self.apple_location.get_x() - self.snake_body[0].get_x()
+        dy = self.apple_location.get_y() - self.snake_body[0].get_y()
+        
+        # Normalizza il vettore
+        magnitude = np.sqrt(dx**2 + dy**2)
+        return (dx/magnitude, dy/magnitude) if magnitude > 0 else (0, 0)

@@ -110,17 +110,9 @@ class QLearningAgent(BaseAgent):
         snake_head = state["snake"][0]
         apple = state["apple"]
         orientation = state["orientation"]
-        
-        # Calcolo distanze e direzioni
-        horizontal_distance = apple[0] - snake_head[0]
-        vertical_distance = apple[1] - snake_head[1]
-        
-        # Direzione relativa della mela
-        apple_direction = (
-            1 if horizontal_distance > 0 else -1,  # Destra/Sinistra
-            1 if vertical_distance > 0 else -1     # Sotto/Sopra
-        )
-        
+        distance = state["distance_to_apple"][0]
+        relative_direction = state["relative_direction"]       
+        """
         # Prossimità a bordi e rischi
         proximity_to_wall = (
             snake_head[0] == 0,  # Vicino bordo sinistro
@@ -135,13 +127,16 @@ class QLearningAgent(BaseAgent):
             abs(snake_head[1] - body[1]) <= 1 
             for body in state["snake"][1:]
         )
+        """
+        # Discretizza alcuni valori per rendere la chiave gestibile
+        distance_bucket = min(int(distance * 5), 10)  # Discretizza distanza
         
         return (
-            apple_direction,
-            proximity_to_wall,
-            body_proximity,
-            len(state["snake"]),  # Lunghezza attuale del serpente
-            orientation  # Aggiunge l'orientazione alla chiave dello stato
+            tuple(snake_head),  # Posizione testa
+            tuple(apple),  # Posizione mela
+            orientation,  # Orientamento serpente
+            distance_bucket,  # Distanza discretizzata
+            tuple(np.round(relative_direction, 1))  # Direzione relativa arrotondata
         )
     
     def get_q_value(self, state, action):
