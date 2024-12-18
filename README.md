@@ -19,7 +19,7 @@ This project implements a Snake game environment and trains various reinforcemen
 
 ## 🛠️ Requirements
 
-- Python 3.8+
+- Python 3.12+
 - PyGame
 - Gymnasium
 - NumPy
