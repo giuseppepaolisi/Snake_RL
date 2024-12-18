@@ -116,6 +116,7 @@ class Snake_Env(gym.Env):
         self.observation_space = spaces.Dict({
             "snake": spaces.Box(low=0, high=size - 1, shape=(2, size), dtype=int),
             "apple": spaces.Box(low=0, high=size - 1, shape=(2,), dtype=int),
+            "orientation": spaces.Discrete(4),  # 0: UP, 1: RIGHT, 2: DOWN, 3: LEFT
         })
         
         # Spazio delle azioni (forward=0, right=1, left=2)
@@ -182,9 +183,18 @@ class Snake_Env(gym.Env):
         Returns:
             dict: Include la posizione del serpente e della mela
         """
+        # Mappa dell'orientazione per convertire in un intero
+        orientation_to_int = {
+            ORIENTATION_UP: 0,
+            ORIENTATION_RIGHT: 1,
+            ORIENTATION_DOWN: 2,
+            ORIENTATION_LEFT: 3
+        }
+        
         return {
             "snake": np.array([segment.get_point() for segment in self.snake_body]),
             "apple": np.array(self.apple_location.get_point()),
+            "orientation": orientation_to_int[self.orientation]
         }
 
     def _get_info(self):

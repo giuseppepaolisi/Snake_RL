@@ -17,7 +17,7 @@ def main():
     env = Snake_Env(size=size)
 
     # Calcola grandezza stato per DQN
-    state_size = env.size * 2 + 2  # Lunghezza massima del serpente * 2 (coordinate x,y) + posizione della mela (2)
+    state_size = env.size * 2 + 2 + 1 # Lunghezza massima del serpente * 2 (coordinate x,y) + posizione della mela (2) + orientamento (1)
     action_size = env.action_space.n
     episodes=10000
     max_steps=200

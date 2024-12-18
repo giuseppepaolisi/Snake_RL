@@ -89,12 +89,15 @@ class BaseAgent:
         return ""
 
 # Agente Q-Learning
+import numpy as np
+import math
+
 class QLearningAgent(BaseAgent):
-    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01, episodes = 1000, gamma=0.95):
+    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, gamma=0.95):
         super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes)
         self.gamma = gamma
         self.q_table = {}
-        self.size=5
+        self.size = 5
     
     def get_model(self):
         return "Q-Learning"
@@ -102,10 +105,11 @@ class QLearningAgent(BaseAgent):
     def get_state_key(self, state):
         """
         Converte lo stato in una chiave univoca per la Q-table.
-        Lo stato è un dizionario che concatena le coordinate di "snake" e "apple"
+        Lo stato include ora anche l'orientazione del serpente.
         """
         snake_head = state["snake"][0]
         apple = state["apple"]
+        orientation = state["orientation"]
         
         # Calcolo distanze e direzioni
         horizontal_distance = apple[0] - snake_head[0]
@@ -136,7 +140,8 @@ class QLearningAgent(BaseAgent):
             apple_direction,
             proximity_to_wall,
             body_proximity,
-            len(state["snake"])  # Lunghezza attuale del serpente
+            len(state["snake"]),  # Lunghezza attuale del serpente
+            orientation  # Aggiunge l'orientazione alla chiave dello stato
         )
     
     def get_q_value(self, state, action):
