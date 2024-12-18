@@ -4,10 +4,15 @@ from ..point import Point
     Azzioni che possono essere fatte da snake
 """
 
-UP = 0
+FORWARD = 0
 RIGHT = 1
-DOWN = 2
-LEFT = 3
+LEFT = 2
+
+
+ORIENTATION_UP = 0
+ORIENTATION_RIGHT = 1
+ORIENTATION_DOWN = 2
+ORIENTATION_LEFT = 3
 
 """
     Possibili direzioni

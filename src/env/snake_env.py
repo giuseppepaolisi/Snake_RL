@@ -3,7 +3,7 @@ from gym import spaces
 import pygame
 import numpy as np
 from .snake.const.rewards import REWARD_COLLISION, REWARD_COLLISION_SELF, REWARD_FOOD, REWARD_STEP, REWARD_MOVE
-from .snake.const.actions import UP, RIGHT, DOWN, LEFT, DIRECTION_UP, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT
+from .snake.const.actions import FORWARD, RIGHT, LEFT, ORIENTATION_UP, ORIENTATION_RIGHT, ORIENTATION_DOWN, ORIENTATION_LEFT, DIRECTION_UP, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT
 from .snake.const.colors import BODY_COLOR, FOOD_COLOR, HEAD_COLOR, SPACE_COLOR
 from .snake.point import Point
 
@@ -118,12 +118,13 @@ class Snake_Env(gym.Env):
             "apple": spaces.Box(low=0, high=size - 1, shape=(2,), dtype=int),
         })
         
-        # Spazio delle azioni (4 direzioni: 0=Su, 1=Destra, 2=Giù, 3=Sinistra) 
-        self.action_space = spaces.Discrete(4)
+        # Spazio delle azioni (forward=0, right=1, left=2)
+        self.action_space = spaces.Discrete(3)
 
         # Stato iniziale del gioco
         self.snake_body = []
         self.direction = DIRECTION_RIGHT
+        self.orientation = ORIENTATION_RIGHT
         self.apple_location = None
         self.score = 0
         self.graphics = GameGraphics(size, self.window_size)
@@ -134,11 +135,10 @@ class Snake_Env(gym.Env):
             *self.np_random.integers(0, self.size, size=2)
         )
         self.snake_body = [head]
-        direction = self.np_random.choice([DIRECTION_UP, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT])
         for _ in range(1):
             new_segment = Point(
                 *np.clip(
-                    np.array(head.get_point()) - np.array(direction.get_point()),
+                    np.array(head.get_point()) - np.array(self.direction.get_point()),
                     0,
                     self.size - 1,
                 )
@@ -166,7 +166,9 @@ class Snake_Env(gym.Env):
         Returns:
             Una tupla contenente le osservazioni iniziali e le informazioni aggiuntive.
         """
-        super().reset(seed=seed)
+        super().reset(seed=seed, options=options)
+        self.orientation = ORIENTATION_RIGHT
+        self.direction = DIRECTION_RIGHT
         self._generate_snake()
         self._generate_apple()
         self.score = 0
@@ -197,27 +199,37 @@ class Snake_Env(gym.Env):
         """ Permette di effettuare un azione nel gioco.
 
         Args:
-            action (np.int32): Azione scelta (0=Su, 1=Destra, 2=Giu, 3=Sinistra).
+            action (np.int32): Azione scelta (0=Avanti, 1=Destra, 2=Giu).
 
         Returns:
             _type_: Ritorna cone osservazione la griglia di gioco, la ricompensa, dice se il gioco è terminato, il punteggio ottenuto
         """
-         # Mappa l'azione a una direzione.
-        directions = {UP: DIRECTION_UP, RIGHT: DIRECTION_RIGHT, DOWN: DIRECTION_DOWN, LEFT: DIRECTION_LEFT}
-        direction = directions[action]
-        
-        opposites = {
-            DIRECTION_UP: DIRECTION_DOWN,
-            DIRECTION_DOWN: DIRECTION_UP,
-            DIRECTION_LEFT: DIRECTION_RIGHT,
-            DIRECTION_RIGHT: DIRECTION_LEFT,
+        # Mappatura delle azioni in base all'orientamento corrente
+        orientations_map = {
+            ORIENTATION_UP: {
+                FORWARD: DIRECTION_UP,
+                RIGHT: DIRECTION_RIGHT,
+                LEFT: DIRECTION_LEFT
+            },
+            ORIENTATION_RIGHT: {
+                FORWARD: DIRECTION_RIGHT,
+                RIGHT: DIRECTION_DOWN,
+                LEFT: DIRECTION_UP
+            },
+            ORIENTATION_DOWN: {
+                FORWARD: DIRECTION_DOWN,
+                RIGHT: DIRECTION_LEFT,
+                LEFT: DIRECTION_RIGHT
+            },
+            ORIENTATION_LEFT: {
+                FORWARD: DIRECTION_LEFT,
+                RIGHT: DIRECTION_UP,
+                LEFT: DIRECTION_DOWN
+            }
         }
-        # Controlla se l'azione è un movimento opposto.
-        if direction == opposites[self.direction]:
-            # Azione nulla.
-            #return self._get_obs(), REWARD_MOVE, False, False, self._get_info()
-            # Viene mantenuta la direzione precedente.
-            direction = self.direction
+
+        # Calcola la nuova direzione in base all'azione e all'orientamento corrente
+        direction = orientations_map[self.orientation][action]
 
         # Calcola la nuova posizione della testa.
         new_head = self.snake_body[0] + direction
@@ -231,6 +243,16 @@ class Snake_Env(gym.Env):
             return self._get_obs(), REWARD_COLLISION, True, False, self._get_info()
 
         self.snake_body.insert(0, new_head)
+        
+         # Aggiorna l'orientamento in base alla nuova direzione
+        if direction == DIRECTION_UP:
+            self.orientation = ORIENTATION_UP
+        elif direction == DIRECTION_RIGHT:
+            self.orientation = ORIENTATION_RIGHT
+        elif direction == DIRECTION_DOWN:
+            self.orientation = ORIENTATION_DOWN
+        elif direction == DIRECTION_LEFT:
+            self.orientation = ORIENTATION_LEFT
 
         # Controlla se il cibo è stato mangiat
         if new_head == self.apple_location:

@@ -5,7 +5,6 @@ import numpy as np
 from train import Train
 from metrics_plotter import plot_combined_metric
 from env.snake_env import Snake_Env
-from tester import test_agent
 
 
 def main():
@@ -20,7 +19,7 @@ def main():
     # Calcola grandezza stato per DQN
     state_size = env.size * 2 + 2  # Lunghezza massima del serpente * 2 (coordinate x,y) + posizione della mela (2)
     action_size = env.action_space.n
-    episodes=15000
+    episodes=10000
     max_steps=200
     
     # Create and train DQN agent
@@ -34,7 +33,7 @@ def main():
     sarsa_train.train()"""
     
     
-    q_learning_agent = QLearningAgent(state_size, action_size, learning_rate=0.01, gamma=0.95, epsilon=0.9, episodes=episodes)
+    q_learning_agent = QLearningAgent(state_size, action_size, learning_rate=0.01, gamma=0.99, epsilon=0.99, episodes=episodes)
     q_learning_agent_train = Train(env, q_learning_agent, episodes, max_steps=max_steps)
     q_learning_agent_train.train()
 
@@ -46,8 +45,29 @@ def main():
         episode=episodes,
         agents=[(sarsa_agent, 'Sarsa'), (q_learning_agent, 'Q-Learning')]
     )"""
+    env.close()
+    env = Snake_Env(size=size, render_mode='human')
+    num_episodes = 10
+    agent = q_learning_agent
+    for episode in range(num_episodes):
+        state, info = env.reset()
+        total_reward = 0
+        done = False
+
+        print(f"--- Episode {episode + 1} ---")
+
+        while True:
+            action = agent.choose_action(state)
+            next_state, reward, done, truncated, info = env.step(action)
+            total_reward += reward
+            state = next_state
+            
+            if done:
+                break
+
+        print(f"Total reward for episode {episode + 1}: {total_reward} Score: {info['score']}")
     
-    test_agent(q_learning_agent, num_episodes=10, size=5)
+    env.close()
     
 if __name__ == "__main__":
     main()
