@@ -1,3 +1,15 @@
 __pycache__/
 models/
 metrics/
+.venv/
+.vscode/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.swp
+.DS_Store
