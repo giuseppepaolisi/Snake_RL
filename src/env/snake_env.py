@@ -190,7 +190,7 @@ class Snake_Env(gym.Env):
         """ Genera l'osservazione attuale del gioco
 
         Returns:
-            dict: Include la posizione del serpente e della mela
+            dict: Include la posizione del serpente e della mela, l'orientamento del serpente e la distanza e la direzione della mela.
         """
         # Mappa dell'orientazione per convertire in un intero
         orientation_to_int = {

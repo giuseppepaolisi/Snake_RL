@@ -330,24 +330,46 @@ class DQNAgent(BaseAgent):
         return "DQN"
     
     def get_state_tensor(self, state):
-        # Appiattisce la rappresentazione dello stato
+        """ Converte lo stato dell'ambiente in un tensore per la rete DQN.
+        Include: posizione serpente, mela, orientamento, distanza e direzione relativa.
+
+        Args:
+            state (_type_): Stato dell'ambiente
+
+        Returns:
+            _type_: Tensore con lo stato dell'ambiente
+        """
         state_list = []
         
-        # Aggiunge le posizioni del corpo del serpente
-        for pos in state['snake']:
-            state_list.extend([pos[0] / (self.state_size - 1), pos[1] / (self.state_size - 1)])
+        # Posizione del serpente (normalizzata)
+        snake_positions = state['snake']
+        for pos in snake_positions[:self.state_size]:  # Limita alla lunghezza massima
+            state_list.extend([pos[0] / (self.state_size - 1),
+                             pos[1] / (self.state_size - 1)])
         
-        # Aggiunge la posizione della mela
+        # Posizione della mela (normalizzata)
         state_list.extend([
-            state['apple'][0] / (self.state_size - 1), 
+            state['apple'][0] / (self.state_size - 1),
             state['apple'][1] / (self.state_size - 1)
         ])
         
-        # Assicura di avere sempre una rappresentazione dello stato di lunghezza fissa
+        # Orientamento (one-hot encoding)
+        orientation = [0] * 4
+        orientation[state['orientation']] = 1
+        state_list.extend(orientation)
+        
+        # Distanza dalla mela (normalizzata)
+        max_distance = np.sqrt(2 * self.state_size**2)
+        state_list.append(float(state['distance_to_apple'][0]) / max_distance)
+        
+        # Direzione relativa (già normalizzata)
+        state_list.extend(state['relative_direction'])
+        
+        # Verifica e padding se necessario
         while len(state_list) < self.input_size:
             state_list.append(0.0)
         
-        # Tronca se troppo lungo
+        # Tronca se necessario
         state_list = state_list[:self.input_size]
         
         return torch.FloatTensor(state_list).to(self.device)

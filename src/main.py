@@ -20,7 +20,7 @@ def main():
     state_size = (
         size * 2  # Lunghezza massima del serpente * 2 (coordinate x,y)
         + 2       # posizione della mela (2)
-        + 1       # orientamento (1)
+        + 4       # orientamento one-hot encoding per migliorare l'apprendimento per le reti neurali(4)
         + 1       # distanza (1)
         + 2       # direzione relativa (2)
     )
@@ -30,9 +30,9 @@ def main():
     max_steps=200
     
     # Create and train DQN agent
-    dqn_agent = DQNAgent(state_size, action_size, learning_rate=0.01, gamma=0.95, epsilon=0.9, episodes=episodes)
-    dqn_train = Train(env, dqn_agent, episodes, max_steps=max_steps)
-    dqn_train.train()
+    #dqn_agent = DQNAgent(state_size, action_size, learning_rate=0.01, gamma=0.95, epsilon=0.9, episodes=episodes)
+    #dqn_train = Train(env, dqn_agent, episodes, max_steps=max_steps)
+    #dqn_train.train()
 
     """sarsa_agent = Sarsa(state_size, action_size, learning_rate=0.01, gamma=0.95, epsilon=0.9, episodes=episodes)
     #agent.load('models/snake_q_agent.pkl')
@@ -40,9 +40,9 @@ def main():
     sarsa_train.train()"""
     
     
-    #q_learning_agent = QLearningAgent(state_size, action_size, learning_rate=0.01, gamma=0.99, epsilon=0.99, episodes=episodes)
-    #q_learning_agent_train = Train(env, q_learning_agent, episodes, max_steps=max_steps)
-    #q_learning_agent_train.train()
+    q_learning_agent = QLearningAgent(state_size, action_size, learning_rate=0.01, gamma=0.99, epsilon=0.99, episodes=episodes)
+    q_learning_agent_train = Train(env, q_learning_agent, episodes, max_steps=max_steps)
+    q_learning_agent_train.train()
 
     #q_learning_agent.load(f'models/snake_{q_learning_agent.get_model()}_{episodes}.pkl')
     
@@ -55,7 +55,7 @@ def main():
     env.close()
     env = Snake_Env(size=size, render_mode='human')
     num_episodes = 10
-    agent = dqn_agent
+    agent = q_learning_agent
     for episode in range(num_episodes):
         state, info = env.reset()
         total_reward = 0
