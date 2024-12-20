@@ -3,8 +3,7 @@ import pickle
 import os
 import math as math
 import torch
-import torch.nn as nn
-import torch.optim as optim
+from torch import nn, optim
 import random
 from collections import deque
 
@@ -27,7 +26,7 @@ class BaseAgent:
         #self.epsilon_decay = self.epsilon / (self.end_epsilon_decay - self.start_epsilon_decay)
     
     def choose_action(self, state):
-        raise NotImplementedError("Questo metodo deve essere implementato nella sottoclasse.")
+        raise NotImplementedError('Questo metodo deve essere implementato nella sottoclasse.')
 
     def decay_epsilon(self):
         self.epsilon = max(self.epsilon * self.epsilon_decay, self.epsilon_min)
@@ -40,30 +39,30 @@ class BaseAgent:
             self.epsilon - decay_rate
         )
     
-    def save(self, filepath):
-        """Salva il modello"""
+    def save(self, filename):
+        'Salva il modello'
         try:
             # Salva sia la Q-table che l'epsilon
             save_data = {
                 'q_table': self.q_table,
                 'epsilon': self.epsilon,
                 'gamma': self.gamma,
-                'learning_rate' : self.learning_rate,
+                'learning_rate': self.learning_rate,
             }
-            with open(filepath, 'wb') as f:
+            with open(filename, 'wb') as f:
                 pickle.dump(save_data, f)
-            print(f"Modello salvato con successo in {filepath}")
+            print(f'Modello salvato con successo in {filename}')
         except Exception as e:
-            print(f"Errore durante il salvataggio: {e}")
+            print(f'Errore durante il salvataggio: {e}')
     
-    def load(self, filepath):
-        """carica il modello"""
-        if not os.path.exists(filepath):
-            print(f"File non trovato: {filepath}")
+    def load(self, filename):
+        'carica il modello'
+        if not os.path.exists(filename):
+            print(f'File non trovato: {filename}')
             return False
         
         try:
-            with open(filepath, 'rb') as f:
+            with open(filename, 'rb') as f:
                 loaded_data = pickle.load(f)
             
             # Carica Q-table
@@ -79,14 +78,14 @@ class BaseAgent:
             if 'learning_rate' in loaded_data:
                 self.learning_rate = loaded_data['learning_rate']
             
-            print(f"Modello caricato con successo da {filepath}")
+            print(f'Modello caricato con successo da {filename}')
             return True
         except Exception as e:
-            print(f"Errore durante il caricamento: {e}")
+            print(f'Errore durante il caricamento: {e}')
             return False
         
     def get_model(self) -> str:
-        return ""
+        return ''
 
 # Agente Q-Learning
 class QLearningAgent(BaseAgent):
@@ -97,7 +96,7 @@ class QLearningAgent(BaseAgent):
         self.size = 5
     
     def get_model(self):
-        return "Q-Learning"
+        return 'Q-Learning'
         
     def get_state_key(self, state):
         """
@@ -222,7 +221,7 @@ class Sarsa(BaseAgent):
         self.q_table = {}
     
     def get_model(self):
-        return "SARSA"
+        return 'SARSA'
         
     def get_state_key(self, state):
         """
@@ -293,7 +292,6 @@ class Sarsa(BaseAgent):
             _type_: _description_
         """
         if np.random.rand() < self.epsilon:
-            # Incrementa steps per influenzare il calcolo della epsilon solo quando viene usata la random policy
             return np.random.choice(self.action_size)  # Esplora
         state_key = self.get_state_key(state)
         
@@ -336,29 +334,40 @@ class Sarsa(BaseAgent):
         )
         self.steps += 1
 
+class DQN(nn.Module):
+    """Deep Q-Network architecture."""
+    def __init__(self, input_size, hidden_size, output_size):
+        super().__init__()
+        self.network = nn.Sequential(
+            nn.Linear(input_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, output_size)
+        )
+
+    def forward(self, x):
+        """Forward pass through the network."""
+        return self.network(x)
+
 class DQNAgent(BaseAgent):
-    def __init__(self, state_size, action_size, learning_rate=0.001, epsilon=1.0, 
-                 epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, gamma=0.95,
-                 hidden_size=64, batch_size=64, memory_size=10000):
-        super().__init__(state_size, action_size, learning_rate, epsilon, 
-                        epsilon_decay, epsilon_min, episodes)
-        self.gamma = gamma
-        self.batch_size = batch_size
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        
-        # Determina la dimensione corretta dell'input
-        self.input_size = state_size
-        
-        # Rete Neurale
-        self.policy_net = DQN(self.input_size, hidden_size, action_size).to(self.device)
-        self.target_net = DQN(self.input_size, hidden_size, action_size).to(self.device)
-        self.target_net.load_state_dict(self.policy_net.state_dict())
-        
-        self.optimizer = optim.Adam(self.policy_net.parameters(), lr=learning_rate)
+    """DQN Agent implementation."""
+    def __init__(self, state_size, action_size, hidden_size=64, memory_size=10000,
+                 batch_size=32, target_update=10, **kwargs):
+        super().__init__(state_size, action_size, **kwargs)
         self.memory = deque(maxlen=memory_size)
+        self.batch_size = batch_size
+        self.target_update = target_update
+        self.steps = 0
+        
+        # Initialize networks
+        self.policy_net = DQN(state_size, hidden_size, action_size)
+        self.target_net = DQN(state_size, hidden_size, action_size)
+        self.target_net.load_state_dict(self.policy_net.state_dict())
+        self.optimizer = optim.Adam(self.policy_net.parameters(), lr=self.learning_rate)
     
     def get_model(self):
-        return "DQN"
+        return 'DQN'
     
     def get_state_tensor(self, state):
         """ Converte lo stato dell'ambiente in un tensore per la rete DQN.
@@ -397,11 +406,11 @@ class DQNAgent(BaseAgent):
         state_list.extend(state['relative_direction'])
         
         # Verifica e padding se necessario
-        while len(state_list) < self.input_size:
+        while len(state_list) < self.state_size:
             state_list.append(0.0)
         
         # Tronca se necessario
-        state_list = state_list[:self.input_size]
+        state_list = state_list[:self.state_size]
         
         return torch.FloatTensor(state_list).to(self.device)
     
@@ -451,7 +460,7 @@ class DQNAgent(BaseAgent):
         self.optimizer.step()
         
         # Aggiorna la rete target periodicamente
-        if self.steps % 100 == 0:
+        if self.steps % self.target_update == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
         
         # Aggiorna epsilon
@@ -460,10 +469,9 @@ class DQNAgent(BaseAgent):
         )
         self.steps += 1
         
-    def save(self, filepath):
-        """Salva il modello"""
+    def save(self, filename):
+        """Save the agent's state."""
         try:
-            # Salva tutti i parametri necessari
             save_data = {
                 'policy_net': self.policy_net.state_dict(),
                 'target_net': self.target_net.state_dict(),
@@ -471,40 +479,26 @@ class DQNAgent(BaseAgent):
                 'steps': self.steps,
                 'optimizer': self.optimizer.state_dict(),
             }
-            torch.save(save_data, filepath)
-            print(f"Modello salvato con successo in {filepath}")
-        except Exception as e:
-            print(f"Errore durante il salvataggio: {e}")
+            torch.save(save_data, filename)
+            print(f'Successfully saved model to {filename}')
+        except (IOError, RuntimeError) as e:
+            print(f'Failed to save model: {str(e)}')
     
-    def load(self, filepath):
+    def load(self, filename):
         """carica il modello"""
-        if not os.path.exists(filepath):
-            print(f"File non trovato: {filepath}")
+        if not os.path.exists(filename):
+            print(f"File non trovato: {filename}")
             return False
         
         try:
-            save_data = torch.load(filepath)
+            save_data = torch.load(filename)
             self.policy_net.load_state_dict(save_data['policy_net'])
             self.target_net.load_state_dict(save_data['target_net'])
             self.epsilon = save_data['epsilon']
             self.steps = save_data['steps']
             self.optimizer.load_state_dict(save_data['optimizer'])
-            print(f"Modello caricato con successo da {filepath}")
+            print(f"Modello caricato con successo da {filename}")
             return True
         except Exception as e:
             print(f"Errore durante il caricamento: {e}")
             return False
-        
-class DQN(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size):
-        super(DQN, self).__init__()
-        self.network = nn.Sequential(
-            nn.Linear(input_size, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, output_size)
-        )
-    
-    def forward(self, x):
-        return self.network(x)

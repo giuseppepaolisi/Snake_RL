@@ -33,7 +33,7 @@ class Train:
                 action = self.agent.choose_action(state)
 
                 # Ambiente esegue l'azione
-                next_state, reward, done, truncated, info = self.env.step(action)
+                next_state, reward, done, _, info = self.env.step(action)
                 
                 # Impara dall'esperienza
                 self.agent.update(state, action, reward, next_state, done)
@@ -48,29 +48,29 @@ class Train:
                 if done:
                     break
                    
-            print(f"Episode {episode + 1}/{self.episodes}, Total Reward: {total_reward}, Score: {info['score']}")
+            print(f'Episode {episode + 1}/{self.episodes}, Total Reward: {total_reward}, Score: {info["score"]}')
             total_rewards.append(total_reward)
             eps.append(self.agent.epsilon)
             score.append(info["score"])
             
         model_path = f'models/snake_{model_name}_{self.episodes}.pkl'
         self.agent.save(model_path)
-        print(f"Modello salvato in {model_path}")
+        print(f'Modello salvato in {model_path}')
         
         # Salvataggio ricompense totali
         rewards_path = f'metrics/total_rewards_{model_name}_{self.episodes}.npy'
         np.save(rewards_path, np.array(total_rewards))
-        print(f"Ricompense totali salvate in {rewards_path}")
+        print(f'Ricompense totali salvate in {rewards_path}')
         
         # Salvataggio decremento epsilon
         rewards_path = f'metrics/epsilon_decay_{model_name}_{self.episodes}.npy'
         np.save(rewards_path, np.array(eps))
-        print(f"Ricompense totali salvate in {rewards_path}")
+        print(f'Ricompense totali salvate in {rewards_path}')
         
         # Salvataggio score
         rewards_path = f'metrics/score_{model_name}_{self.episodes}.npy'
         np.save(rewards_path, np.array(score))
-        print(f"Ricompense totali salvate in {rewards_path}")
+        print(f'Ricompense totali salvate in {rewards_path}')
 
         # Grafico delle metriche
         self.plot_metrics()
@@ -128,5 +128,3 @@ class Train:
         plt.legend()
         plt.savefig(f'metrics/score_{self.agent.get_model()}_{self.episodes}.png')
         plt.show()
-        
-    

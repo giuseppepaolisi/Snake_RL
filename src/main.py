@@ -36,11 +36,10 @@ def main():
     #dqn_train = Train(env, dqn_agent, episodes, max_steps=max_steps)
     #dqn_train.train()
 
-    """sarsa_agent = Sarsa(state_size, action_size, learning_rate=0.01, gamma=0.95, epsilon=0.9, episodes=episodes)
+    '''sarsa_agent = Sarsa(state_size, action_size, learning_rate=0.01, gamma=0.95, epsilon=0.9, episodes=episodes)
     #agent.load('models/snake_q_agent.pkl')
     sarsa_train = Train(env, sarsa_agent, episodes, max_steps=max_steps)
-    sarsa_train.train()"""
-    
+    sarsa_train.train()'''
     
     q_learning_agent = QLearningAgent(state_size, action_size, learning_rate=0.01, gamma=0.99, epsilon=0.99, episodes=episodes)
     q_learning_agent_train = Train(env, q_learning_agent, episodes, max_steps=max_steps)
@@ -49,11 +48,11 @@ def main():
     #q_learning_agent.load(f'models/snake_{q_learning_agent.get_model()}_{episodes}.pkl')
     
     # Dopo l'addestramento di entrambi gli agenti, genera grafico combinato per lo score
-    """plot_combined_metric(
+    '''plot_combined_metric(
         metric='score',
         episode=episodes,
         agents=[(sarsa_agent, 'Sarsa'), (q_learning_agent, 'Q-Learning')]
-    )"""
+    )'''
     env.close()
     env = Snake_Env(size=size, render_mode='human')
     num_episodes = 10
@@ -63,18 +62,18 @@ def main():
         total_reward = 0
         done = False
 
-        print(f"--- Episode {episode + 1} ---")
+        print(f'--- Episode {episode + 1} ---')
 
         while True:
             action = agent.choose_action(state)
-            next_state, reward, done, truncated, info = env.step(action)
+            next_state, reward, done, _, info = env.step(action)  # Ignoriamo truncated
             total_reward += reward
             state = next_state
             
             if done:
                 break
 
-        print(f"Total reward for episode {episode + 1}: {total_reward} Score: {info['score']}")
+        print(f'Total reward for episode {episode + 1}: {total_reward} Score: {info["score"]}')
     
     env.close()
     

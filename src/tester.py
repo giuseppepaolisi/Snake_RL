@@ -9,17 +9,17 @@ def test_agent(agent, num_episodes=10, size=5):
         total_reward = 0
         done = False
 
-        print(f"--- Episode {episode + 1} ---")
+        print(f'--- Episode {episode + 1} ---')
 
         while True:
             action = agent.choose_action(state)
-            next_state, reward, done, truncated, info = env.step(action)
+            next_state, reward, done, _, info = env.step(action)  # Ignoriamo truncated
             total_reward += reward
             state = next_state
             
             if done:
                 break
 
-        print(f"Total reward for episode {episode + 1}: {total_reward} Score: {info['score']}")
+        print(f'Total reward for episode {episode + 1}: {total_reward} Score: {info["score"]}')
     
     env.close()
