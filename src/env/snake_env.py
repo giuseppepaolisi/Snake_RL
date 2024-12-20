@@ -151,13 +151,21 @@ class Snake_Env(gym.Env):
 
     def _generate_apple(self):
         """Genera una mela in una posizione casuale non occupata dal serpente."""
-        while True:
-            apple = Point(
-                *self.np_random.integers(0, self.size, size=2)
-            )
-            if apple not in self.snake_body:
-                self.apple_location = apple
-                break
+        # Crea un set di tutte le posizioni possibili
+        all_positions = {(x, y) for x in range(self.size) for y in range(self.size)}
+        
+        # Rimuovi le posizioni occupate dal serpente
+        snake_positions = {(segment.get_x(), segment.get_y()) for segment in self.snake_body}
+        available_positions = list(all_positions - snake_positions)
+        
+        # Se non ci sono posizioni disponibili, non generare la mela
+        if not available_positions:
+            return False
+            
+        # Seleziona una posizione casuale tra quelle disponibili
+        x, y = self.np_random.choice(available_positions)
+        self.apple_location = Point(x, y)
+        return True
 
     def reset(self, seed=None, options=None):
         """
@@ -170,19 +178,32 @@ class Snake_Env(gym.Env):
         Returns:
             Una tupla contenente le osservazioni iniziali e le informazioni aggiuntive.
         """
-        super().reset(seed=seed, options=options)
-        self.orientation = ORIENTATION_RIGHT
-        self.direction = DIRECTION_RIGHT
-        self._generate_snake()
-        self._generate_apple()
-        self.score = 0
+        # Inizializza il generatore di numeri casuali
+        super().reset(seed=seed)
         
-        # Calcolo distanza iniziale per calcolare reward
+        # Resetta lo stato del gioco
+        self.snake_body = []
+        self.direction = DIRECTION_RIGHT
+        self.orientation = ORIENTATION_RIGHT
+        self.score = 0
+        self.initial_distance = None
+        
+        # Genera il serpente e la mela
+        self._generate_snake()
+        if not self._generate_apple():
+            raise RuntimeError("Impossibile generare la mela: il serpente occupa tutta la griglia")
+        
+        # Calcola la distanza iniziale
         self.initial_distance = self._calculate_distance()
         
+        observation = self._get_obs()
+        info = self._get_info()
+        
         if self.render_mode == "human":
-            self.graphics.render(self.snake_body, self.apple_location, self.metadata["render_fps"])
-        return self._get_obs(), self._get_info()
+            self.graphics.initialize()
+            self.render()
+            
+        return observation, info
 
     def _get_obs(self):
         """ Genera l'osservazione attuale del gioco
@@ -285,10 +306,16 @@ class Snake_Env(gym.Env):
         final_distance = self._calculate_distance()
 
         # Controlla se il cibo è stato mangiat
+        done = False
         if new_head == self.apple_location:
             self.score += 1
             reward = REWARD_FOOD
-            self._generate_apple()
+            if not self._generate_apple():
+                # Il serpente ha riempito tutta la griglia - Vittoria!
+                done = True
+                reward = REWARD_FOOD * 2  # Bonus reward per aver completato il gioco
+            else:
+                done = False
         else:
             # Controlla se si sta avvicinando al cibo
             if final_distance < self.initial_distance:
@@ -304,7 +331,7 @@ class Snake_Env(gym.Env):
         if self.render_mode == "human":
             self.graphics.render(self.snake_body, self.apple_location, self.metadata["render_fps"])
 
-        return self._get_obs(), reward, False, False, self._get_info()
+        return self._get_obs(), reward, done, False, self._get_info()
 
     def render(self):
         """ Renderizza l'ambiente. Se la modalità è "rgb_array", restituisce l'immagine renderizzata.
@@ -324,4 +351,3 @@ class Snake_Env(gym.Env):
             float: Distanza euclidea tra mela e testa del serpente
         """
         return np.sqrt((self.snake_body[0].get_x() - self.apple_location.get_x())**2 + (self.snake_body[0].get_y() - self.apple_location.get_y())**2)
-    
