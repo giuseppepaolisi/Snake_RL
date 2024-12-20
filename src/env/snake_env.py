@@ -114,7 +114,7 @@ class Snake_Env(gym.Env):
             # 1. La posizione del serpente come lista di segmenti (coordinate x, y)
             # 2. La posizione della mela come una coppia di coordinate (x, y).
         self.observation_space = spaces.Dict({
-            "snake": spaces.Box(low=0, high=size - 1, shape=(2, size), dtype=int),
+            "snake": spaces.Box(low=0, high=size - 1, shape=(size*size, 2), dtype=int),
             "apple": spaces.Box(low=0, high=size - 1, shape=(2,), dtype=int),
             "orientation": spaces.Discrete(4),  # 0: UP, 1: RIGHT, 2: DOWN, 3: LEFT
             "distance_to_apple": spaces.Box(low=0, high=np.sqrt(2*size**2), shape=(1,), dtype=float),
@@ -192,7 +192,16 @@ class Snake_Env(gym.Env):
         Returns:
             dict: Include la posizione del serpente e della mela, l'orientamento del serpente e la distanza e la direzione della mela.
         """
-        # Mappa dell'orientazione per convertire in un intero
+        snake_positions = np.array([segment.get_point() for segment in self.snake_body], dtype=np.int32)
+        current_length = len(snake_positions)
+        
+        # Create padded array filled with zeros
+        padded_snake = np.zeros((self.size * self.size, 2), dtype=np.int32)
+        
+        # Fill in actual snake positions
+        padded_snake[:current_length] = snake_positions
+        
+        # Mappa dell'orientamento per convertire in un intero
         orientation_to_int = {
             ORIENTATION_UP: 0,
             ORIENTATION_RIGHT: 1,
@@ -205,11 +214,11 @@ class Snake_Env(gym.Env):
         current_direction = self._get_relative_direction()
         
         return {
-            "snake": np.array([segment.get_point() for segment in self.snake_body]),
+            "snake": padded_snake,
             "apple": np.array(self.apple_location.get_point()),
             "orientation": orientation_to_int[self.orientation],
             "distance_to_apple": np.array([current_distance]),
-            "relative_direction": current_direction,
+            "relative_direction": np.array(current_direction),
         }
 
     def _get_info(self):

@@ -18,7 +18,7 @@ def main():
 
     # Dimensione dello stato
     state_size = (
-        size * 2  # Lunghezza massima del serpente * 2 (coordinate x,y)
+        size * size * 2  # Lunghezza massima del serpente * 2 (coordinate x,y)
         + 2       # posizione della mela (2)
         + 4       # orientamento one-hot encoding per migliorare l'apprendimento per le reti neurali(4)
         + 1       # distanza (1)
