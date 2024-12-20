@@ -89,9 +89,6 @@ class BaseAgent:
         return ""
 
 # Agente Q-Learning
-import numpy as np
-import math
-
 class QLearningAgent(BaseAgent):
     def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, gamma=0.95):
         super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes)
