@@ -105,15 +105,22 @@ class QLearningAgent(BaseAgent):
     def get_state_key(self, state):
         """
         Converte lo stato in una chiave univoca per la Q-table.
-        Lo stato include ora anche l'orientazione del serpente.
+        Lo stato include ora anche l'orientamento del serpente.
         """
         snake_head = state["snake"][0]
         apple = state["apple"]
         orientation = state["orientation"]
-        distance = state["distance_to_apple"][0]
-        relative_direction = state["relative_direction"]       
-        """
-        # Prossimità a bordi e rischi
+        
+        # Calcola la distanza euclidea
+        dx = apple[0] - snake_head[0]
+        dy = apple[1] - snake_head[1]
+        distance = np.sqrt(dx**2 + dy**2)
+        
+        # Calcola la direzione relativa
+        magnitude = distance
+        relative_direction = (dx/magnitude, dy/magnitude) if magnitude > 0 else (0, 0)
+        
+        # Calcola proximity_to_wall
         proximity_to_wall = (
             snake_head[0] == 0,  # Vicino bordo sinistro
             snake_head[0] == self.size - 1,  # Vicino bordo destro
@@ -121,22 +128,25 @@ class QLearningAgent(BaseAgent):
             snake_head[1] == self.size - 1   # Vicino bordo inferiore
         )
         
-        # Rischio di collisione con se stesso
-        body_proximity = any(
-            abs(snake_head[0] - body[0]) <= 1 and 
-            abs(snake_head[1] - body[1]) <= 1 
-            for body in state["snake"][1:]
+        # Calcola body_proximity
+        body_proximity = (
+            any(segment[0] == snake_head[0] and segment[1] == snake_head[1] - 1 for segment in state["snake"][1:]),  # Sopra
+            any(segment[0] == snake_head[0] + 1 and segment[1] == snake_head[1] for segment in state["snake"][1:]),  # Destra
+            any(segment[0] == snake_head[0] and segment[1] == snake_head[1] + 1 for segment in state["snake"][1:]),  # Sotto
+            any(segment[0] == snake_head[0] - 1 and segment[1] == snake_head[1] for segment in state["snake"][1:])   # Sinistra
         )
-        """
-        # Discretizza alcuni valori per rendere la chiave gestibile
-        distance_bucket = min(int(distance * 5), 10)  # Discretizza distanza
+        
+        # Discretizza la distanza
+        distance_bucket = min(int(distance * 5), 10)
         
         return (
-            tuple(snake_head),  # Posizione testa
-            tuple(apple),  # Posizione mela
-            orientation,  # Orientamento serpente
-            distance_bucket,  # Distanza discretizzata
-            tuple(np.round(relative_direction, 1))  # Direzione relativa arrotondata
+            tuple(snake_head),
+            tuple(apple),
+            orientation,
+            distance_bucket,
+            proximity_to_wall,
+            body_proximity,
+            tuple(np.round(relative_direction, 1)),
         )
     
     def get_q_value(self, state, action):
@@ -161,7 +171,6 @@ class QLearningAgent(BaseAgent):
             _type_: _description_
         """
         if np.random.rand() < self.epsilon:
-            # Incrementa steps per influenzare il calcolo della epsilon solo quando viene usata la random policy
             return np.random.choice(self.action_size)  # Esplora
         state_key = self.get_state_key(state)
         
@@ -226,18 +235,43 @@ class Sarsa(BaseAgent):
         snake_head = state["snake"][0]
         apple = state["apple"]
         orientation = state["orientation"]
-        distance = state["distance_to_apple"][0]
-        relative_direction = state["relative_direction"]       
         
-        # Discretizza alcuni valori per rendere la chiave gestibile
-        distance_bucket = min(int(distance * 5), 10)  # Discretizza distanza
+        # Calcola la distanza euclidea
+        dx = apple[0] - snake_head[0]
+        dy = apple[1] - snake_head[1]
+        distance = np.sqrt(dx**2 + dy**2)
+        
+        # Calcola la direzione relativa
+        magnitude = distance
+        relative_direction = (dx/magnitude, dy/magnitude) if magnitude > 0 else (0, 0)
+        
+        # Calcola proximity_to_wall
+        proximity_to_wall = (
+            snake_head[0] == 0,  # Vicino bordo sinistro
+            snake_head[0] == self.size - 1,  # Vicino bordo destro
+            snake_head[1] == 0,  # Vicino bordo superiore
+            snake_head[1] == self.size - 1   # Vicino bordo inferiore
+        )
+        
+        # Calcola body_proximity
+        body_proximity = (
+            any(segment[0] == snake_head[0] and segment[1] == snake_head[1] - 1 for segment in state["snake"][1:]),  # Sopra
+            any(segment[0] == snake_head[0] + 1 and segment[1] == snake_head[1] for segment in state["snake"][1:]),  # Destra
+            any(segment[0] == snake_head[0] and segment[1] == snake_head[1] + 1 for segment in state["snake"][1:]),  # Sotto
+            any(segment[0] == snake_head[0] - 1 and segment[1] == snake_head[1] for segment in state["snake"][1:])   # Sinistra
+        )
+        
+        # Discretizza la distanza
+        distance_bucket = min(int(distance * 5), 10)
         
         return (
-            tuple(snake_head),  # Posizione testa
-            tuple(apple),  # Posizione mela
-            orientation,  # Orientamento serpente
-            distance_bucket,  # Distanza discretizzata
-            tuple(np.round(relative_direction, 1))  # Direzione relativa arrotondata
+            tuple(snake_head),
+            tuple(apple),
+            orientation,
+            distance_bucket,
+            proximity_to_wall,
+            body_proximity,
+            tuple(np.round(relative_direction, 1)),
         )
 
     def get_q_value(self, state, action):

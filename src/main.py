@@ -18,11 +18,13 @@ def main():
 
     # Dimensione dello stato
     state_size = (
-        size * size * 2  # Lunghezza massima del serpente * 2 (coordinate x,y)
-        + 2       # posizione della mela (2)
-        + 4       # orientamento one-hot encoding per migliorare l'apprendimento per le reti neurali(4)
-        + 1       # distanza (1)
-        + 2       # direzione relativa (2)
+        2       # posizione testa del serpente (x, y)
+        + 2     # posizione della mela (x, y)
+        + 4     # orientamento one-hot encoding (4 direzioni)
+        + 1     # distanza dalla mela
+        + 2     # direzione relativa della mela
+        + 4     # prossimità ai muri (4 direzioni)
+        + 4     # prossimità al proprio corpo (4 direzioni)
     )
     
     action_size = env.action_space.n

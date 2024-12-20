@@ -117,8 +117,6 @@ class Snake_Env(gym.Env):
             "snake": spaces.Box(low=0, high=size - 1, shape=(size*size, 2), dtype=int),
             "apple": spaces.Box(low=0, high=size - 1, shape=(2,), dtype=int),
             "orientation": spaces.Discrete(4),  # 0: UP, 1: RIGHT, 2: DOWN, 3: LEFT
-            "distance_to_apple": spaces.Box(low=0, high=np.sqrt(2*size**2), shape=(1,), dtype=float),
-            "relative_direction": spaces.Box(low=-1, high=1, shape=(2,), dtype=float)
         })
         
         # Spazio delle azioni (forward=0, right=1, left=2)
@@ -190,7 +188,7 @@ class Snake_Env(gym.Env):
         """ Genera l'osservazione attuale del gioco
 
         Returns:
-            dict: Include la posizione del serpente e della mela, l'orientamento del serpente e la distanza e la direzione della mela.
+            dict: Include la posizione del serpente, la posizione della mela e l'orientamento del serpente.
         """
         snake_positions = np.array([segment.get_point() for segment in self.snake_body], dtype=np.int32)
         current_length = len(snake_positions)
@@ -209,16 +207,11 @@ class Snake_Env(gym.Env):
             ORIENTATION_LEFT: 3
         }
         
-        # Calcola distanza e direzione correnti
-        current_distance = self._calculate_distance()
-        current_direction = self._get_relative_direction()
         
         return {
             "snake": padded_snake,
             "apple": np.array(self.apple_location.get_point()),
             "orientation": orientation_to_int[self.orientation],
-            "distance_to_apple": np.array([current_distance]),
-            "relative_direction": np.array(current_direction),
         }
 
     def _get_info(self):
@@ -332,15 +325,3 @@ class Snake_Env(gym.Env):
         """
         return np.sqrt((self.snake_body[0].get_x() - self.apple_location.get_x())**2 + (self.snake_body[0].get_y() - self.apple_location.get_y())**2)
     
-    def _get_relative_direction(self):
-        """Restituisce una rappresentazione della direzione relativa della mela rispetto al serpente come vettore (dx, dy)
-
-        Returns:
-            (float, float): Vettore rappresentante la direzione relativa della mela rispetto al serpente
-        """
-        dx = self.apple_location.get_x() - self.snake_body[0].get_x()
-        dy = self.apple_location.get_y() - self.snake_body[0].get_y()
-        
-        # Normalizza il vettore
-        magnitude = np.sqrt(dx**2 + dy**2)
-        return (dx/magnitude, dy/magnitude) if magnitude > 0 else (0, 0)
