@@ -9,14 +9,14 @@ from collections import deque
 
 # Classe base per gli agenti
 class BaseAgent:
-    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.999, epsilon_min=0.01, episodes = 1000, size = 5, gamma = 0.95):
+    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.999, epsilon_min=0.01, episodes=1000, size=5, gamma=0.95):
         self.state_size = state_size
         self.action_size = action_size
         self.epsilon = epsilon
         self.learning_rate = learning_rate
         self.gamma = gamma
-        self.size = 5
-        
+        self.size = size
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
         self.steps = 0
@@ -29,7 +29,7 @@ class BaseAgent:
     
     def choose_action(self, state):
         raise NotImplementedError('Questo metodo deve essere implementato nella sottoclasse.')
-
+    
     def decay_epsilon(self):
         self.epsilon = max(self.epsilon * self.epsilon_decay, self.epsilon_min)
     
@@ -105,44 +105,20 @@ class QLearningAgent(BaseAgent):
         """
         snake_head = state["snake"][0]
         apple = state["apple"]
-        orientation = state["orientation"]
-        
-        # Calcola la distanza euclidea
-        dx = apple[0] - snake_head[0]
-        dy = apple[1] - snake_head[1]
-        distance = np.sqrt(dx**2 + dy**2)
-        
-        # Calcola la direzione relativa
-        magnitude = distance
-        relative_direction = (dx/magnitude, dy/magnitude) if magnitude > 0 else (0, 0)
-        
-        # Calcola proximity_to_wall
-        proximity_to_wall = (
-            snake_head[0] == 0,  # Vicino bordo sinistro
-            snake_head[0] == self.size - 1,  # Vicino bordo destro
-            snake_head[1] == 0,  # Vicino bordo superiore
-            snake_head[1] == self.size - 1   # Vicino bordo inferiore
-        )
-        
-        # Calcola body_proximity
-        body_proximity = (
-            any(segment[0] == snake_head[0] and segment[1] == snake_head[1] - 1 for segment in state["snake"][1:]),  # Sopra
-            any(segment[0] == snake_head[0] + 1 and segment[1] == snake_head[1] for segment in state["snake"][1:]),  # Destra
-            any(segment[0] == snake_head[0] and segment[1] == snake_head[1] + 1 for segment in state["snake"][1:]),  # Sotto
-            any(segment[0] == snake_head[0] - 1 and segment[1] == snake_head[1] for segment in state["snake"][1:])   # Sinistra
-        )
-        
-        # Discretizza la distanza
-        distance_bucket = min(int(distance * 5), 10)
-        
+        orientation = tuple(state["orientation"])
+        distance = int(state["distance_to_apple"][0] * 10)  # Discretize distance
+        relative_direction = tuple(np.round(state["relative_direction"], 1))
+        proximity_to_wall = tuple(state["proximity_to_wall"])
+        body_proximity = tuple(state["body_proximity"])
+
         return (
             tuple(snake_head),
             tuple(apple),
             orientation,
-            distance_bucket,
+            distance,
+            relative_direction,
             proximity_to_wall,
-            body_proximity,
-            tuple(np.round(relative_direction, 1)),
+            body_proximity
         )
     
     def get_q_value(self, state, action):
@@ -229,44 +205,20 @@ class Sarsa(BaseAgent):
         """
         snake_head = state["snake"][0]
         apple = state["apple"]
-        orientation = state["orientation"]
-        
-        # Calcola la distanza euclidea
-        dx = apple[0] - snake_head[0]
-        dy = apple[1] - snake_head[1]
-        distance = np.sqrt(dx**2 + dy**2)
-        
-        # Calcola la direzione relativa
-        magnitude = distance
-        relative_direction = (dx/magnitude, dy/magnitude) if magnitude > 0 else (0, 0)
-        
-        # Calcola proximity_to_wall
-        proximity_to_wall = (
-            snake_head[0] == 0,  # Vicino bordo sinistro
-            snake_head[0] == self.size - 1,  # Vicino bordo destro
-            snake_head[1] == 0,  # Vicino bordo superiore
-            snake_head[1] == self.size - 1   # Vicino bordo inferiore
-        )
-        
-        # Calcola body_proximity
-        body_proximity = (
-            any(segment[0] == snake_head[0] and segment[1] == snake_head[1] - 1 for segment in state["snake"][1:]),  # Sopra
-            any(segment[0] == snake_head[0] + 1 and segment[1] == snake_head[1] for segment in state["snake"][1:]),  # Destra
-            any(segment[0] == snake_head[0] and segment[1] == snake_head[1] + 1 for segment in state["snake"][1:]),  # Sotto
-            any(segment[0] == snake_head[0] - 1 and segment[1] == snake_head[1] for segment in state["snake"][1:])   # Sinistra
-        )
-        
-        # Discretizza la distanza
-        distance_bucket = min(int(distance * 5), 10)
-        
+        orientation = tuple(state["orientation"])
+        distance = int(state["distance_to_apple"][0] * 10)  # Discretize distance
+        relative_direction = tuple(np.round(state["relative_direction"], 1))
+        proximity_to_wall = tuple(state["proximity_to_wall"])
+        body_proximity = tuple(state["body_proximity"])
+
         return (
             tuple(snake_head),
             tuple(apple),
             orientation,
-            distance_bucket,
+            distance,
+            relative_direction,
             proximity_to_wall,
-            body_proximity,
-            tuple(np.round(relative_direction, 1)),
+            body_proximity
         )
 
     def get_q_value(self, state, action):
@@ -359,7 +311,7 @@ class DQNAgent(BaseAgent):
         self.target_update = target_update
         self.steps = 0
         
-        # Initialize networks
+        # Inizzializzazione della rete
         self.policy_net = DQN(state_size, hidden_size, action_size)
         self.target_net = DQN(state_size, hidden_size, action_size)
         self.target_net.load_state_dict(self.policy_net.state_dict())
@@ -378,40 +330,43 @@ class DQNAgent(BaseAgent):
         Returns:
             _type_: Tensore con lo stato dell'ambiente
         """
-        state_list = []
+        state_features = []
         
-        # Posizione del serpente (normalizzata)
-        snake_positions = state['snake']
-        for pos in snake_positions[:self.state_size]:  # Limita alla lunghezza massima
-            state_list.extend([pos[0] / (self.state_size - 1),
-                             pos[1] / (self.state_size - 1)])
+        # Posizione testa del serpente (x, y) normalizzata
+        snake_head = state['snake'][0]
+        state_features.extend([snake_head[0] / (self.size - 1), snake_head[1] / (self.size - 1)])
         
-        # Posizione della mela (normalizzata)
-        state_list.extend([
-            state['apple'][0] / (self.state_size - 1),
-            state['apple'][1] / (self.state_size - 1)
-        ])
+        # Posizione della mela (x, y) normalizzata
+        apple = state['apple']
+        state_features.extend([apple[0] / (self.size - 1), apple[1] / (self.size - 1)])
         
-        # Orientamento (one-hot encoding)
-        orientation = [0] * 4
-        orientation[state['orientation']] = 1
-        state_list.extend(orientation)
+        # Codifica one-hot dell'orientamento
+        orientation = state['orientation']
+        state_features.extend(orientation)
         
-        # Distanza dalla mela (normalizzata)
-        max_distance = np.sqrt(2 * self.state_size**2)
-        state_list.append(float(state['distance_to_apple'][0]) / max_distance)
+        # Distanza dalla mela normalizzata
+        max_distance = np.sqrt(2 * (self.size - 1)**2)
+        distance = state['distance_to_apple'][0] / max_distance
+        state_features.append(distance)
         
-        # Direzione relativa (già normalizzata)
-        state_list.extend(state['relative_direction'])
+        # Direzione relativa (dx, dy) già  normalizzata
+        relative_direction = state['relative_direction']
+        state_features.extend(relative_direction)
         
-        # Verifica e padding se necessario
-        while len(state_list) < self.state_size:
-            state_list.append(0.0)
+        # Prossimità  ai muri (4 flag binarie)
+        proximity_to_wall = state['proximity_to_wall']
+        state_features.extend(proximity_to_wall)
         
-        # Tronca se necessario
-        state_list = state_list[:self.state_size]
+        # Prossimità  del corpo (4 flag binarie)
+        body_proximity = state['body_proximity']
+        state_features.extend(body_proximity)
         
-        return torch.FloatTensor(state_list).to(self.device)
+        # Verifica che le feature dello stato siano della dimensione attesa
+        expected_size = 19  # 2+2+4+1+2+4+4
+        if len(state_features) != expected_size:
+            raise ValueError(f"Distanza delle feature dello stato incompatibile: atteso {expected_size}, ottenuto {len(state_features)}")
+        
+        return torch.FloatTensor(state_features).to(self.device)
     
     def choose_action(self, state):
         if random.random() < self.epsilon:
@@ -434,10 +389,10 @@ class DQNAgent(BaseAgent):
         states, actions, rewards, next_states, dones = zip(*batch)
         
         # Converte in tensori
-        state_batch = torch.stack([self.get_state_tensor(s) for s in states])
+        state_batch = torch.stack([self.get_state_tensor(s) for s in states]).to(self.device)
         action_batch = torch.LongTensor(actions).to(self.device)
         reward_batch = torch.FloatTensor(rewards).to(self.device)
-        next_state_batch = torch.stack([self.get_state_tensor(s) for s in next_states])
+        next_state_batch = torch.stack([self.get_state_tensor(s) for s in next_states]).to(self.device)
         done_batch = torch.FloatTensor(dones).to(self.device)
         
         # Calcola i valori Q correnti
