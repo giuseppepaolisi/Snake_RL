@@ -117,6 +117,8 @@ class Snake_Env(gym.Env):
             "snake": spaces.Box(low=0, high=size - 1, shape=(size*size, 2), dtype=int),
             "apple": spaces.Box(low=0, high=size - 1, shape=(2,), dtype=int),
             "orientation": spaces.Discrete(4),  # 0: UP, 1: RIGHT, 2: DOWN, 3: LEFT
+            "distance_to_apple": spaces.Box(low=0, high=np.sqrt(2*size**2), shape=(1,), dtype=float),
+            "relative_direction": spaces.Box(low=-1, high=1, shape=(2,), dtype=float)
         })
         
         # Spazio delle azioni (forward=0, right=1, left=2)
@@ -211,28 +213,43 @@ class Snake_Env(gym.Env):
         Returns:
             dict: Include la posizione del serpente, la posizione della mela e l'orientamento del serpente.
         """
-        snake_positions = np.array([segment.get_point() for segment in self.snake_body], dtype=np.int32)
-        current_length = len(snake_positions)
+        snake_head = self.snake_body[0]
+        apple = self.apple_location
         
-        # Create padded array filled with zeros
-        padded_snake = np.zeros((self.size * self.size, 2), dtype=np.int32)
+        # Orientamento one-hot encoding
+        orientation_one_hot = [0, 0, 0, 0]
+        orientation_one_hot[self.orientation] = 1
+
+        # Distanza dalla mela
+        distance_to_apple = self._calculate_distance()
+
+        # Direzione relativa
+        relative_direction = self._get_relative_direction()
         
-        # Fill in actual snake positions
-        padded_snake[:current_length] = snake_positions
-        
-        # Mappa dell'orientamento per convertire in un intero
-        orientation_to_int = {
-            ORIENTATION_UP: 0,
-            ORIENTATION_RIGHT: 1,
-            ORIENTATION_DOWN: 2,
-            ORIENTATION_LEFT: 3
-        }
-        
-        
+        # Proximity to walls
+        proximity_to_wall = (
+            snake_head.get_x() == 0,  # left
+            snake_head.get_x() == self.size - 1,  # right
+            snake_head.get_y() == 0,  # top
+            snake_head.get_y() == self.size - 1   # bottom
+        )
+
+        # Proximity to body
+        body_proximity = (
+            any(segment.get_x() == snake_head.get_x() and segment.get_y() == snake_head.get_y() - 1 for segment in self.snake_body[1:]),  # up
+            any(segment.get_x() == snake_head.get_x() + 1 and segment.get_y() == snake_head.get_y() for segment in self.snake_body[1:]),  # right
+            any(segment.get_x() == snake_head.get_x() and segment.get_y() == snake_head.get_y() + 1 for segment in self.snake_body[1:]),  # down
+            any(segment.get_x() == snake_head.get_x() - 1 and segment.get_y() == snake_head.get_y() for segment in self.snake_body[1:])   # left
+        )
+
         return {
-            "snake": padded_snake,
-            "apple": np.array(self.apple_location.get_point()),
-            "orientation": orientation_to_int[self.orientation],
+            "snake": np.array([segment.get_point() for segment in self.snake_body]),
+            "apple": np.array(apple.get_point()),
+            "orientation": orientation_one_hot,
+            "distance_to_apple": np.array([distance_to_apple]),
+            "relative_direction": np.array(relative_direction),
+            "proximity_to_wall": np.array(proximity_to_wall, dtype=int),
+            "body_proximity": np.array(body_proximity, dtype=int)
         }
 
     def _get_info(self):
@@ -351,3 +368,16 @@ class Snake_Env(gym.Env):
             float: Distanza euclidea tra mela e testa del serpente
         """
         return np.sqrt((self.snake_body[0].get_x() - self.apple_location.get_x())**2 + (self.snake_body[0].get_y() - self.apple_location.get_y())**2)
+    
+    def _get_relative_direction(self):
+        """Restituisce una rappresentazione della direzione relativa della mela rispetto al serpente come vettore (dx, dy)
+
+        Returns:
+            (float, float): Vettore rappresentante la direzione relativa della mela rispetto al serpente
+        """
+        dx = self.apple_location.get_x() - self.snake_body[0].get_x()
+        dy = self.apple_location.get_y() - self.snake_body[0].get_y()
+        
+        # Normalizza il vettore
+        magnitude = np.sqrt(dx**2 + dy**2)
+        return (dx/magnitude, dy/magnitude) if magnitude > 0 else (0, 0)
