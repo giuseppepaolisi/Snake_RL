@@ -9,11 +9,13 @@ from collections import deque
 
 # Classe base per gli agenti
 class BaseAgent:
-    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.999, epsilon_min=0.01, episodes = 1000):
+    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.999, epsilon_min=0.01, episodes = 1000, size = 5, gamma = 0.95):
         self.state_size = state_size
         self.action_size = action_size
         self.epsilon = epsilon
         self.learning_rate = learning_rate
+        self.gamma = gamma
+        self.size = 5
         
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
@@ -89,11 +91,9 @@ class BaseAgent:
 
 # Agente Q-Learning
 class QLearningAgent(BaseAgent):
-    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, gamma=0.95):
-        super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes)
-        self.gamma = gamma
+    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, size=5, gamma=0.95):
+        super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes, size, gamma)
         self.q_table = {}
-        self.size = 5
     
     def get_model(self):
         return 'Q-Learning'
@@ -101,7 +101,7 @@ class QLearningAgent(BaseAgent):
     def get_state_key(self, state):
         """
         Converte lo stato in una chiave univoca per la Q-table.
-        Lo stato include ora anche l'orientamento del serpente.
+        Lo stato include coordinate del serpente, coordinate della mela, orientamento, distanza, se è vicino al bordo e se è vicino al corpo
         """
         snake_head = state["snake"][0]
         apple = state["apple"]
@@ -215,9 +215,8 @@ class QLearningAgent(BaseAgent):
         self.epsilon = max(self.epsilon_min, self.epsilon)
 
 class Sarsa(BaseAgent):
-    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01, episodes = 1000, gamma=0.95):
-        super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes)
-        self.gamma = gamma
+    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01, episodes = 1000, size = 5, gamma=0.95):
+        super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes, size, gamma)
         self.q_table = {}
     
     def get_model(self):
@@ -226,7 +225,7 @@ class Sarsa(BaseAgent):
     def get_state_key(self, state):
         """
         Converte lo stato in una chiave univoca per la Q-table.
-        Lo stato è un dizionario che concatena le coordinate di "snake" e "apple"
+        Lo stato include coordinate del serpente, coordinate della mela, orientamento, distanza, se è vicino al bordo e se è vicino al corpo
         """
         snake_head = state["snake"][0]
         apple = state["apple"]
@@ -278,7 +277,7 @@ class Sarsa(BaseAgent):
         state_key = self.get_state_key(state)
         
         if state_key not in self.q_table:
-            self.q_table[state_key] = np.zeros(self.action_size)
+            self.q_table[state_key] = np.random.uniform(-1, 1, self.action_size)
         
         return self.q_table[state_key][action]
 
@@ -296,12 +295,12 @@ class Sarsa(BaseAgent):
         state_key = self.get_state_key(state)
         
         if state_key not in self.q_table:
-            self.q_table[state_key] = np.zeros(self.action_size)
+            self.q_table[state_key] = np.random.uniform(-1, 1, self.action_size)
         
         return np.argmax(self.q_table[state_key]) # sfrutta
 
     def update(self, state, action, reward, next_state, done):
-        """ Q-Learning update rule
+        """ Sarsa update rule
         
         Q(s,a) = Q(s,a) + lr [r + gamma * Q(s',a') - Q(s,a)]
 
@@ -324,7 +323,7 @@ class Sarsa(BaseAgent):
 
         state_key = self.get_state_key(state)
         if state_key not in self.q_table:
-            self.q_table[state_key] = np.zeros(self.action_size)
+            self.q_table[state_key] = np.random.uniform(-1, 1, self.action_size)
 
         self.q_table[state_key][action] = new_q
 
@@ -335,7 +334,7 @@ class Sarsa(BaseAgent):
         self.steps += 1
 
 class DQN(nn.Module):
-    """Deep Q-Network architecture."""
+    """ArchitetturaDeep Q-Network"""
     def __init__(self, input_size, hidden_size, output_size):
         super().__init__()
         self.network = nn.Sequential(
@@ -347,7 +346,7 @@ class DQN(nn.Module):
         )
 
     def forward(self, x):
-        """Forward pass through the network."""
+        """Passaggio in avanti attraverso la rete."""
         return self.network(x)
 
 class DQNAgent(BaseAgent):
