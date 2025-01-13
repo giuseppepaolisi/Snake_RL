@@ -112,13 +112,20 @@ class Snake_Env(gym.Env):
 
         # Definizione dello spazio delle osservazioni. Include:
             # 1. La posizione del serpente come lista di segmenti (coordinate x, y)
-            # 2. La posizione della mela come una coppia di coordinate (x, y).
+            # 2. La posizione della mela come una coppia di coordinate (x, y)
+            # 3. L'orientamento del serpente come un intero (0: UP, 1: RIGHT, 2: DOWN, 3: LEFT)
+            # 4. La distanza dalla mela come un intero
+            # 5. La direzione relativa della mela come un vettore (dx, dy)
+            # 6. La prossimità ai muri come una lista di interi (0: non prossimo, 1: prossimo)
+            # 7. La prossimità al corpo come una lista di interi (0: non prossimo, 1: prossimo)
         self.observation_space = spaces.Dict({
             "snake": spaces.Box(low=0, high=size - 1, shape=(size*size, 2), dtype=int),
             "apple": spaces.Box(low=0, high=size - 1, shape=(2,), dtype=int),
             "orientation": spaces.Discrete(4),  # 0: UP, 1: RIGHT, 2: DOWN, 3: LEFT
             "distance_to_apple": spaces.Box(low=0, high=np.sqrt(2*size**2), shape=(1,), dtype=float),
-            "relative_direction": spaces.Box(low=-1, high=1, shape=(2,), dtype=float)
+            "relative_direction": spaces.Box(low=-1, high=1, shape=(2,), dtype=float),
+            "proximity_to_wall": spaces.Box(low=0, high=1, shape=(4,), dtype=int),
+            "body_proximity": spaces.Box(low=0, high=1, shape=(4,), dtype=int),
         })
         
         # Spazio delle azioni (forward=0, right=1, left=2)
