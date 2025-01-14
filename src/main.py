@@ -5,6 +5,7 @@ import numpy as np
 from train import Train
 from metrics_plotter import plot_combined_metric
 from env.snake_env import Snake_Env
+from tester import test_agent
 
 
 def main():
@@ -45,37 +46,13 @@ def main():
     #q_learning_agent_train = Train(env, q_learning_agent, episodes, max_steps=max_steps)
     #q_learning_agent_train.train()
 
-    #q_learning_agent.load(f'models/snake_{q_learning_agent.get_model()}_{episodes}.pkl')
-    
-    # Dopo l'addestramento di entrambi gli agenti, genera grafico combinato per lo score
-    '''plot_combined_metric(
-        metric='score',
-        episode=episodes,
-        agents=[(sarsa_agent, 'Sarsa'), (q_learning_agent, 'Q-Learning')]
-    )'''
-    env.close()
-    env = Snake_Env(size=size, render_mode='human')
-    num_episodes = 10
-    agent = dqn_agent
-    for episode in range(num_episodes):
-        state, info = env.reset()
-        total_reward = 0
-        done = False
-
-        print(f'--- Episode {episode + 1} ---')
-
-        while True:
-            action = agent.choose_action(state)
-            next_state, reward, done, _, info = env.step(action)
-            total_reward += reward
-            state = next_state
-            
-            if done:
-                break
-
-        print(f'Total reward for episode {episode + 1}: {total_reward} Score: {info["score"]}')
+    # Esegui il test utilizzando tester.py
+    print("\n--- Testing the DQN Agent ---")
+    num_test_episodes = 10
+    test_agent(agent=dqn_agent, num_episodes=num_test_episodes, size=size)
     
     env.close()
+    
     
 if __name__ == "__main__":
     main()
