@@ -19,22 +19,27 @@ class BaseAgent:
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
-        self.steps = 0
         self.episodes = episodes
-        self.epsilon_start = epsilon
         self.q_table = {}  # Inizializza la q_table
 
     def choose_action(self, state):
         raise NotImplementedError('Questo metodo deve essere implementato nella sottoclasse.')
-
-    def decay_epsilon(self):
-        self.epsilon = max(self.epsilon * self.epsilon_decay, self.epsilon_min)
-
-    def decay_linear(self):
-        # Calcola il decadimento lineare
-        decay_rate = (self.epsilon_start - self.epsilon_min) / self.episodes
-        self.epsilon = max(self.epsilon_min, self.epsilon - decay_rate)
-
+    
+    def decay_epsilon(self, mode='exponential', episodes_completed=0, step_size=10):
+        """Decremento epsilon secondo diverse strategie"""
+        self.decay_mode = mode
+        if self.decay_mode == 'exponential':
+            self.epsilon = max(self.epsilon * self.epsilon_decay, self.epsilon_min)
+        elif self.decay_mode == 'linear':
+            decay_rate = (self.epsilon_start - self.epsilon_min) / self.episodes
+            self.epsilon = max(self.epsilon_min, self.epsilon - decay_rate)
+        elif self.decay_mode == 'cosine':
+            progress = episodes_completed / self.episodes
+            self.epsilon = self.epsilon_min + 0.5 * (self.epsilon_start - self.epsilon_min) * (1 + math.cos(math.pi * progress))
+        elif self.decay_mode == 'step':
+            if episodes_completed % step_size == 0:
+                self.epsilon = max(self.epsilon * self.epsilon_decay, self.epsilon_min)
+            
     def save(self, filename):
         'Salva il modello'
         try:
@@ -78,7 +83,7 @@ class BaseAgent:
 
 # Agente Q-Learning
 class QLearningAgent(BaseAgent):
-    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, size=5, gamma=0.95):
+    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=0.99, epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, size=5, gamma=0.95):
         super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes, size, gamma)
 
     def get_model(self):
@@ -133,14 +138,9 @@ class QLearningAgent(BaseAgent):
             self.q_table[state_key] = np.random.uniform(-1, 1, self.action_size)
         self.q_table[state_key][action] = new_q
         
-        self.epsilon = self.epsilon_min + (self.epsilon_start - self.epsilon_min) * math.exp(
-            -1 * self.steps / self.episodes
-        )
-        self.steps += 1
-        self.epsilon = max(self.epsilon_min, self.epsilon)
 
 class Sarsa(BaseAgent):
-    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, size=5, gamma=0.95):
+    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=0.99, epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, size=5, gamma=0.95):
         super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes, size, gamma)
 
     def get_model(self):
@@ -191,11 +191,6 @@ class Sarsa(BaseAgent):
         state_key = self.get_state_key(state)
         self.q_table[state_key][action] = new_q
         
-        self.epsilon = self.epsilon_min + (self.epsilon_start - self.epsilon_min) * math.exp(
-            -1 * self.steps / self.episodes
-        )
-        self.steps += 1
-        self.epsilon = max(self.epsilon_min, self.epsilon)
 
 class DQN(nn.Module):
     """Architettura Deep Q-Network"""
@@ -215,8 +210,8 @@ class DQN(nn.Module):
 
 class DQNAgent(BaseAgent):
     """DQN Agent implementation."""
-    def __init__(self, state_size, action_size, hidden_size=64, memory_size=10000, batch_size=32, target_update=10, **kwargs):
-        super().__init__(state_size, action_size, **kwargs)
+    def __init__(self, state_size, action_size, hidden_size=64, memory_size=10000, batch_size=32, target_update=10, learning_rate=0.01, epsilon=0.99, epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, size=5, gamma=0.95):
+        super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes, size, gamma)
         self.memory = deque(maxlen=memory_size)
         self.batch_size = batch_size
         self.target_update = target_update
@@ -302,8 +297,6 @@ class DQNAgent(BaseAgent):
         # Aggiorna la rete target periodicamente
         if self.steps % self.target_update == 0:
             self.target_net.load_state_dict(self.policy_net.state_dict())
-        # Aggiorna epsilon
-        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
         self.steps += 1
 
     def save(self, filename):

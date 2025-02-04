@@ -41,13 +41,11 @@ class Train:
 
                 # Passa al prossimo stato
                 state = next_state
-
-                #if reward > 0:
-                #    step = 0
                 
                 if done:
                     break
-                   
+            
+            self.agent.decay_epsilon(mode='exponential', episodes_completed=(episode + 1))       
             print(f'Episode {episode + 1}/{self.episodes}, Total Reward: {total_reward}, Score: {info["score"]}')
             total_rewards.append(total_reward)
             eps.append(self.agent.epsilon)
