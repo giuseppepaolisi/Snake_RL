@@ -2,7 +2,7 @@
 
 A Python implementation of the classic Snake game with Reinforcement Learning agents. This project uses OpenAI Gym (formerly OpenAI Gym) to create a custom Snake environment where different RL agents can be trained to play the game.
 
-SUpported agents: DQN, Sarsa, QLearning
+Supported agents: DQN, Sarsa, QLearning
 
 <div align="center">
   <img src="immage\DQN_game.gif" width="300" alt="Demo">
@@ -72,11 +72,6 @@ pip install -r requirements.txt
 1. To train a new agent:
 ```bash
 python src/main.py
-```
-
-2. To test a trained agent:
-```bash
-python tester.py
 ```
 
 ## 📁 Project Structure
