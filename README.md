@@ -2,6 +2,8 @@
 
 A Python implementation of the classic Snake game with Reinforcement Learning agents. This project uses OpenAI Gym (formerly OpenAI Gym) to create a custom Snake environment where different RL agents can be trained to play the game.
 
+![Snake Game GIF](GIF/DQN_game.gif)
+
 ## 🎮 Project Overview
 
 This project implements a Snake game environment and trains various reinforcement learning agents to play it. The agents learn to control the snake, collect food, and avoid collisions with walls and themselves.
@@ -21,7 +23,7 @@ This project implements a Snake game environment and trains various reinforcemen
 
 - Python 3.12+
 - PyGame
-- Gymnasium
+- gym
 - NumPy
 - Matplotlib
 - Pandas
