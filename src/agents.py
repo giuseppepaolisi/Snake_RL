@@ -179,18 +179,15 @@ class Sarsa(BaseAgent):
             self.q_table[state_key] = np.random.uniform(-1, 1, self.action_size)
         return np.argmax(self.q_table[state_key])  # Sfrutta
 
-    def update(self, state, action, reward, next_state, done):
+    def update(self, state, action, reward, next_state, next_action, done):
         """ Sarsa update rule """
         current_q = self.get_q_value(state, action)
         if done:
             next_q = 0
         else:
-            next_action = self.choose_action(next_state)
             next_q = self.get_q_value(next_state, next_action)
         new_q = current_q + self.learning_rate * (reward + self.gamma * next_q - current_q)
         state_key = self.get_state_key(state)
-        if state_key not in self.q_table:
-            self.q_table[state_key] = np.random.uniform(-1, 1, self.action_size)
         self.q_table[state_key][action] = new_q
         
         self.epsilon = self.epsilon_min + (self.epsilon_start - self.epsilon_min) * math.exp(

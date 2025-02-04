@@ -34,9 +34,15 @@ class Train:
 
                 # Ambiente esegue l'azione
                 next_state, reward, done, _, info = self.env.step(action)
+                                
+                # Sarsa update rule
+                if(self.agent.get_model() == "SARSA"):
+                    next_action = self.agent.choose_action(next_state)
+                    self.agent.update(state, action, reward, next_state, next_action, done)
+                else:
+                    # Q-Learning e DNQ update rule 
+                    self.agent.update(state, action, reward, next_state, done)
                 
-                # Impara dall'esperienza
-                self.agent.update(state, action, reward, next_state, done)
                 total_reward += reward
 
                 # Passa al prossimo stato
