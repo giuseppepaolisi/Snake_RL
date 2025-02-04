@@ -2,7 +2,7 @@ import gym
 from gym import spaces
 import pygame
 import numpy as np
-from .snake.const.rewards import REWARD_COLLISION, REWARD_COLLISION_SELF, REWARD_FOOD, REWARD_STEP_TO_FOOD, REWARD_STEP_NO_FOOD
+from .snake.const.rewards import REWARD_COLLISION, REWARD_COLLISION_SELF, REWARD_FOOD, REWARD_STEP_TO_FOOD, REWARD_STEP_NO_FOOD, REWARD_WIN
 from .snake.const.actions import FORWARD, RIGHT, LEFT, ORIENTATION_UP, ORIENTATION_RIGHT, ORIENTATION_DOWN, ORIENTATION_LEFT, DIRECTION_UP, DIRECTION_RIGHT, DIRECTION_DOWN, DIRECTION_LEFT
 from .snake.const.colors import BODY_COLOR, FOOD_COLOR, HEAD_COLOR, SPACE_COLOR
 from .snake.point import Point
@@ -335,9 +335,9 @@ class Snake_Env(gym.Env):
             self.score += 1
             reward = REWARD_FOOD
             if not self._generate_apple():
-                # Il serpente ha riempito tutta la griglia - Vittoria!
+                # Il serpente ha riempito tutta la griglia
                 done = True
-                reward = REWARD_FOOD * 2  # Bonus reward per aver completato il gioco
+                reward = REWARD_WIN  # Bonus reward per aver completato il gioco
             else:
                 done = False
         else:
