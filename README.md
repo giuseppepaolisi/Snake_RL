@@ -2,13 +2,11 @@
 
 A Python implementation of the classic Snake game with Reinforcement Learning agents. This project uses OpenAI Gym (formerly OpenAI Gym) to create a custom Snake environment where different RL agents can be trained to play the game.
 
-## 🎮 Project Overview
-
-This project implements a Snake game environment and trains various reinforcement learning agents to play it. The agents learn to control the snake, collect food, and avoid collisions with walls and themselves.
+SUpported agents: DQN, Sarsa, QLearning
 
 <div align="center">
-  <img src="GIF\DQN_game.gif" width="300" alt="Demo">
-  <p>Agente DQN</p>
+  <img src="immage\DQN_game.gif" width="300" alt="Demo">
+  <p>Agent DQN</p>
 </div>
 
 ## 🚀 Features
@@ -19,6 +17,23 @@ This project implements a Snake game environment and trains various reinforcemen
 - Performance metrics tracking
 - Visualization of training progress
 - Trained model saving and loading capabilities
+
+## 📊 Performance Metrics
+
+
+### Reward Graph
+
+<div align="center">
+  <img src="immage\reward.png" width="500" alt="Demo">
+  <p>Plots the average reward over time</p>
+</div>
+
+### Score Graph
+
+<div align="center">
+    <img src="immage\score.png" width="500" alt="Demo">
+    <p>Plots the average score over time</p>
+</div>
 
 ## 🛠️ Requirements
 
@@ -81,12 +96,6 @@ Snake_RL/
 ├── metrics/               # Training metrics and logs
 └── requirements.txt       # Project dependencies
 ```
-
-## 📊 Performance Metrics
-
-Training metrics are saved in the `metrics` directory. You can visualize the training progress using the included plotting utilities.
-
-(Add graphs or charts of training metrics)
 
 ##
 Copyright © 2024
