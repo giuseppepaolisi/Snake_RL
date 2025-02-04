@@ -50,7 +50,7 @@ class ComparisonPlotter:
                     color=self.colors[i],
                     linewidth=2,
                     alpha=0.8,
-                    label=f'{model} (MA {window_size})')
+                    label=f'{model}')
             
         plt.title(f'Confronto Reward ({self.episodes} episodi)', fontsize=14)
         plt.xlabel('Episodi', fontsize=12)
