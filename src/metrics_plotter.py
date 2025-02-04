@@ -3,58 +3,104 @@ import matplotlib.pyplot as plt
 import os
 from agents import QLearningAgent, Sarsa
 
-def plot_combined_metric(metric, episode, labels):
-    
-    plt.figure(figsize=(12, 6))
+import numpy as np
+import matplotlib.pyplot as plt
+import os
 
-    for label in labels:
-        # Percorso del file delle metriche
-        rewards_path = f'metrics/{metric}_{label}_{episode}.npy'
-        values = np.load(rewards_path)
+class ComparisonPlotter:
+    def __init__(self, models, episodes=10000, metrics_path='metrics'):
+        """
+        Inizializza il plotter per il confronto tra modelli.
         
-        # Linea continua per ogni agente
-        plt.plot(values, linewidth=1.5, label=label)
-
-    plt.xlabel("Episodes")
-    plt.ylabel(metric.capitalize())
-    plt.title(f"Comparison of {metric.capitalize()} Across Agents")
-    plt.legend(loc='upper left')
-    plt.grid(True, linestyle='--', alpha=0.7)  # Aggiunge una griglia leggera
-    plt.tight_layout()  # Ottimizza il layout
-    plt.savefig(f'metrics/combined_{metric}_{episode}.png')
-    plt.show()
+        :param models: Lista dei nomi degli agenti da confrontare (es. ['Q-Learning', 'SARSA', 'DQN'])
+        :param episodes: Numero di episodi del training
+        :param metrics_path: Cartella dove sono salvate le metriche
+        """
+        self.models = models
+        self.episodes = episodes
+        self.metrics_path = metrics_path
+        self.colors = ['blue', 'green', 'red', 'purple', 'orange']
+        
+    def _load_metric(self, metric_name):
+        """Carica la metrica per tutti i modelli"""
+        data = {}
+        for model in self.models:
+            path = os.path.join(self.metrics_path, f'{metric_name}_{model}_{self.episodes}.npy')
+            if os.path.exists(path):
+                data[model] = np.load(path)
+            else:
+                print(f"Attenzione: File non trovato per {model} - {metric_name}")
+        return data
+    
+    def plot_rewards_comparison(self, window_size=100):
+        """Grafico sovrapposto delle reward con media mobile"""
+        rewards_data = self._load_metric('total_rewards')
+        
+        plt.figure(figsize=(14, 7))
+        for i, (model, rewards) in enumerate(rewards_data.items()):
+            if len(rewards) < window_size:
+                continue
+                
+            # Calcola media mobile
+            moving_avg = np.convolve(rewards, np.ones(window_size)/window_size, mode='valid')
+            
+            # Plot
+            plt.plot(range(window_size, len(rewards)+1), 
+                    moving_avg, 
+                    color=self.colors[i],
+                    linewidth=2,
+                    alpha=0.8,
+                    label=f'{model} (MA {window_size})')
+            
+        plt.title(f'Confronto Reward ({self.episodes} episodi)', fontsize=14)
+        plt.xlabel('Episodi', fontsize=12)
+        plt.ylabel('Reward Media', fontsize=12)
+        plt.grid(alpha=0.3)
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(os.path.join(self.metrics_path, f'rewards_comparison_{self.episodes}.png'))
+        plt.show()
+    
+    def plot_scores_comparison(self, window_size=50):
+        """Grafico sovrapposto degli score con smoothing"""
+        scores_data = self._load_metric('score')
+        
+        plt.figure(figsize=(14, 7))
+        for i, (model, scores) in enumerate(scores_data.items()):
+            # Applica smoothing esponenziale
+            smooth_scores = np.convolve(scores, np.ones(window_size)/window_size, mode='valid')
+            
+            plt.plot(range(window_size, len(scores)+1), 
+                    smooth_scores, 
+                    color=self.colors[i],
+                    linewidth=1.5,
+                    alpha=0.8,
+                    label=f'{model}')
+            
+        plt.title('Confronto Score per Episodio', fontsize=14)
+        plt.xlabel('Episodi', fontsize=12)
+        plt.ylabel('Score', fontsize=12)
+        plt.grid(alpha=0.3)
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(os.path.join(self.metrics_path, f'scores_comparison_{self.episodes}.png'))
+        plt.show()
     
 def main():
-    # Definisci il numero di episodi
-    episodes = 1000  # Cambia questo valore in base alle tue esigenze
+    # Configurazione
+    models = ['Q-Learning', 'SARSA', 'DQN']
+    episodes = 10000
 
-    models = ["Q-Learning", "SARSA"]
-    
-    # Inizializza una lista per le metriche
-    agents_metrics = {metric: [] for metric in ['score', 'total_rewards', 'epsilon_decay']}
+    # Inizializzazione plotter
+    plotter = ComparisonPlotter(
+        models=models,
+        episodes=episodes,
+        metrics_path='metrics/'
+    )
 
-    # Carica le metriche per ogni modello
-    for model in models:
-        for metric in agents_metrics.keys():
-            # Usa i nomi delle metriche in minuscolo
-            file_path = f'metrics/{metric.lower()}_{model}_{episodes}.npy'
-            print(f"Trying to load: {file_path}")  # Stampa il percorso del file
-            try:
-                # Carica la metrica specifica
-                values = np.load(file_path)  # Assicurati che file_path sia una stringa valida
-                agents_metrics[metric].append((model, values))  # Aggiungi la metrica alla lista
-
-            except FileNotFoundError:
-                print(f"File non trovato per il modello: {model}, metrica: {metric}")
-            except Exception as e:
-                print(f"Errore durante il caricamento del file: {e}")
-
-    # Stampa le metriche utilizzando il metodo di plotting
-    for metric, data in agents_metrics.items():
-        if data:  # Se ci sono dati per la metrica
-            # Passa i dati corretti alla funzione
-            labels = [agent[0] for agent in data]  # Estrai solo i nomi dei modelli
-            plot_combined_metric(metric=metric, episode=episodes, labels=labels)
+    # Generazione grafici
+    plotter.plot_rewards_comparison(window_size=100)
+    plotter.plot_scores_comparison(window_size=50)
 
 if __name__ == "__main__":
     main()
