@@ -84,17 +84,17 @@ class Train:
         rewards = np.load(rewards_path)
 
         # Calcola la media mobile
-        window_size = 5
+        window_size = 100
         moving_avg = np.convolve(rewards, np.ones((window_size,)) / window_size, mode="valid")
 
         # Grafico
         plt.figure(figsize=(12, 6))
-        plt.plot(range(window_size, len(rewards) + 1), moving_avg, label="Moving Average", color='red')
+        plt.plot(range(window_size, len(rewards) + 1), moving_avg, label="Rewards Average", color='red')
         plt.xlabel("Episode")
         plt.ylabel("Reward")
-        plt.title(f"Moving Average of Rewards ({self.agent.get_model()})")
+        plt.title(f" Rewards ({self.agent.get_model()})")
         plt.legend()
-        plt.savefig(f'metrics/moving_average_rewards_{self.agent.get_model()}_{self.episodes}.png')
+        plt.savefig(f'metrics/rewards_{self.agent.get_model()}_{self.episodes}.png')
         plt.show()
     
     def plot_eps(self):
