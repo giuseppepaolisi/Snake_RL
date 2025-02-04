@@ -5,6 +5,7 @@ from collections import deque
 import numpy as np
 import torch
 from torch import nn, optim
+import math
 
 # Classe base per gli agenti
 class BaseAgent:
@@ -131,8 +132,12 @@ class QLearningAgent(BaseAgent):
         if state_key not in self.q_table:
             self.q_table[state_key] = np.random.uniform(-1, 1, self.action_size)
         self.q_table[state_key][action] = new_q
-        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+        
+        self.epsilon = self.epsilon_min + (self.epsilon_start - self.epsilon_min) * math.exp(
+            -1 * self.steps / self.episodes
+        )
         self.steps += 1
+        self.epsilon = max(self.epsilon_min, self.epsilon)
 
 class Sarsa(BaseAgent):
     def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, size=5, gamma=0.95):
@@ -187,8 +192,12 @@ class Sarsa(BaseAgent):
         if state_key not in self.q_table:
             self.q_table[state_key] = np.random.uniform(-1, 1, self.action_size)
         self.q_table[state_key][action] = new_q
-        self.epsilon = max(self.epsilon_min, self.epsilon * self.epsilon_decay)
+        
+        self.epsilon = self.epsilon_min + (self.epsilon_start - self.epsilon_min) * math.exp(
+            -1 * self.steps / self.episodes
+        )
         self.steps += 1
+        self.epsilon = max(self.epsilon_min, self.epsilon)
 
 class DQN(nn.Module):
     """Architettura Deep Q-Network"""
