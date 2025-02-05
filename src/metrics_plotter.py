@@ -1,11 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-from agents import QLearningAgent, Sarsa
-
-import numpy as np
-import matplotlib.pyplot as plt
-import os
 
 class ComparisonPlotter:
     def __init__(self, models, episodes=10000, metrics_path='metrics'):
@@ -52,6 +47,13 @@ class ComparisonPlotter:
                     alpha=0.8,
                     label=f'{model}')
             
+            # Plot media reward per episodio
+            mean_reward = np.mean(rewards)
+            plt.plot([0, len(rewards)], [mean_reward, mean_reward], 
+                    color=self.colors[i], 
+                    linestyle='--', 
+                    label=f'{model} media')
+            
         plt.title(f'Confronto Reward ({self.episodes} episodi)', fontsize=14)
         plt.xlabel('Episodi', fontsize=12)
         plt.ylabel('Reward Media', fontsize=12)
@@ -77,6 +79,13 @@ class ComparisonPlotter:
                     alpha=0.8,
                     label=f'{model}')
             
+            # Plot media score per episodio
+            mean_score = np.mean(scores)
+            plt.plot([0, len(scores)], [mean_score, mean_score], 
+                    color=self.colors[i], 
+                    linestyle='--', 
+                    label=f'{model} media')
+            
         plt.title('Confronto Score per Episodio', fontsize=14)
         plt.xlabel('Episodi', fontsize=12)
         plt.ylabel('Score', fontsize=12)
@@ -100,7 +109,7 @@ def main():
 
     # Generazione grafici
     plotter.plot_rewards_comparison(window_size=100)
-    plotter.plot_scores_comparison(window_size=50)
+    plotter.plot_scores_comparison(window_size=100)
 
 if __name__ == "__main__":
     main()
