@@ -84,8 +84,8 @@ class BaseAgent:
 
 # Agente Q-Learning
 class QLearningAgent(BaseAgent):
-    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=0.99, epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, size=5, gamma=0.95):
-        super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes, size, gamma)
+    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=0.99, epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, size=5, gamma=0.95, decay_mode="exponential"):
+        super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes, size, gamma, decay_mode)
 
     def get_model(self):
         return 'Q-Learning'
@@ -141,8 +141,8 @@ class QLearningAgent(BaseAgent):
         
 
 class Sarsa(BaseAgent):
-    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=0.99, epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, size=5, gamma=0.95):
-        super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes, size, gamma)
+    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=0.99, epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, size=5, gamma=0.95, decay_mode="exponential"):
+        super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes, size, gamma, decay_mode)
 
     def get_model(self):
         return 'SARSA'
@@ -211,8 +211,8 @@ class DQN(nn.Module):
 
 class DQNAgent(BaseAgent):
     """DQN Agent implementation."""
-    def __init__(self, state_size, action_size, hidden_size=64, memory_size=10000, batch_size=32, target_update=10, learning_rate=0.01, epsilon=0.99, epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, size=5, gamma=0.95):
-        super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes, size, gamma)
+    def __init__(self, state_size, action_size, hidden_size=64, memory_size=10000, batch_size=32, target_update=10, learning_rate=0.01, epsilon=0.99, epsilon_decay=0.995, epsilon_min=0.01, episodes=1000, size=5, gamma=0.95, decay_mode="exponential"):
+        super().__init__(state_size, action_size, learning_rate, epsilon, epsilon_decay, epsilon_min, episodes, size, gamma, decay_mode)
         self.memory = deque(maxlen=memory_size)
         self.batch_size = batch_size
         self.target_update = target_update
