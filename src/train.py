@@ -45,7 +45,7 @@ class Train:
                 if done:
                     break
             
-            self.agent.decay_epsilon(mode='exponential', episodes_completed=(episode + 1))       
+            self.agent.decay_epsilon(episodes_completed=(episode + 1))       
             print(f'Episode {episode + 1}/{self.episodes}, Total Reward: {total_reward}, Score: {info["score"]}')
             total_rewards.append(total_reward)
             eps.append(self.agent.epsilon)
@@ -61,7 +61,7 @@ class Train:
         print(f'Ricompense totali salvate in {rewards_path}')
         
         # Salvataggio decremento epsilon
-        rewards_path = f'metrics/epsilon_decay_{model_name}_{self.episodes}.npy'
+        rewards_path = f'metrics/epsilon_decay_{model_name}_{self.agent.decay_mode}_{self.episodes}.npy'
         np.save(rewards_path, np.array(eps))
         print(f'Ricompense totali salvate in {rewards_path}')
         
