@@ -4,9 +4,15 @@ A Python implementation of the classic Snake game with Reinforcement Learning ag
 
 Supported agents: DQN, Sarsa, QLearning
 
-<div align="center">
-  <img src="immage\DQN_game.gif" width="300" alt="Demo">
-  <p>Agent DQN</p>
+<div align="center" style="display: flex; justify-content: center; gap: 20px;">
+  <div>
+    <img src="immage\DQN_game.gif" width="230" alt="Demo">
+    <label>Agent DQN</label>
+  </div>
+  <div>
+    <img src="immage\Q-Learning_game.gif" width="230" alt="Demo">
+    <label>Agent Q-Learning</label>
+  </div>
 </div>
 
 ## 🚀 Features
