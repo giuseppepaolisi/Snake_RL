@@ -20,6 +20,7 @@ class BaseAgent:
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
         self.episodes = episodes
+        self.epsilon_start = epsilon
         self.q_table = {}  # Inizializza la q_table
 
     def choose_action(self, state):
