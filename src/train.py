@@ -56,7 +56,7 @@ class Train:
         print(f'Modello salvato in {model_path}')
         
         # Salvataggio ricompense totali
-        rewards_path = f'metrics/total_rewards_{model_name}_{self.episodes}.npy'
+        rewards_path = f'metrics/total_rewards_{model_name}_{self.agent.decay_mode}_{self.episodes}.npy'
         np.save(rewards_path, np.array(total_rewards))
         print(f'Ricompense totali salvate in {rewards_path}')
         
@@ -66,7 +66,7 @@ class Train:
         print(f'Ricompense totali salvate in {rewards_path}')
         
         # Salvataggio score
-        rewards_path = f'metrics/score_{model_name}_{self.episodes}.npy'
+        rewards_path = f'metrics/score_{model_name}_{self.agent.decay_mode}_{self.episodes}.npy'
         np.save(rewards_path, np.array(score))
         print(f'Ricompense totali salvate in {rewards_path}')
 
@@ -80,7 +80,7 @@ class Train:
     def plot_metrics(self):
         """Genera grafici delle metriche raccolte."""
         # Carica i dati salvati
-        rewards_path = f'metrics/total_rewards_{self.agent.get_model()}_{self.episodes}.npy'
+        rewards_path = f'metrics/total_rewards_{self.agent.get_model()}_{self.agent.decay_mode}_{self.episodes}.npy'
         rewards = np.load(rewards_path)
 
         # Calcola la media mobile
@@ -114,15 +114,15 @@ class Train:
         
     def plot_score(self):
         # Carica i dati salvati
-        rewards_path = f'metrics/score_{self.agent.get_model()}_{self.episodes}.npy'
-        eps = np.load(rewards_path)
+        rewards_path = f'metrics/score_{self.agent.get_model()}_{self.agent.decay_mode}_{self.episodes}.npy'
+        score = np.load(rewards_path)
         
         # Grafico
         plt.figure(figsize=(12, 6))
-        plt.plot(eps, label="Score", color='red')
+        plt.plot(score, label="Score", color='red')
         plt.xlabel("Episode")
         plt.ylabel("Score")
         plt.title(f"Score ({self.agent.get_model()})")
         plt.legend()
-        plt.savefig(f'metrics/score_{self.agent.get_model()}_{self.episodes}.png')
+        plt.savefig(f'metrics/score_{self.agent.get_model()}_{self.agent.decay_mode}_{self.episodes}.png')
         plt.show()
