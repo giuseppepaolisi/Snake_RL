@@ -9,7 +9,7 @@ import math
 
 # Classe base per gli agenti
 class BaseAgent:
-    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.999, epsilon_min=0.01, episodes=1000, size=5, gamma=0.95):
+    def __init__(self, state_size, action_size, learning_rate=0.01, epsilon=1.0, epsilon_decay=0.999, epsilon_min=0.01, episodes=1000, size=5, gamma=0.95, decay_mode="exponential"):
         self.state_size = state_size
         self.action_size = action_size
         self.epsilon = epsilon
@@ -22,13 +22,13 @@ class BaseAgent:
         self.episodes = episodes
         self.epsilon_start = epsilon
         self.q_table = {}  # Inizializza la q_table
+        self.decay_mode = decay_mode
 
     def choose_action(self, state):
         raise NotImplementedError('Questo metodo deve essere implementato nella sottoclasse.')
     
-    def decay_epsilon(self, mode='exponential', episodes_completed=0, step_size=10):
+    def decay_epsilon(self, episodes_completed=0, step_size=10):
         """Decremento epsilon secondo diverse strategie"""
-        self.decay_mode = mode
         if self.decay_mode == 'exponential':
             self.epsilon = max(self.epsilon * self.epsilon_decay, self.epsilon_min)
         elif self.decay_mode == 'linear':

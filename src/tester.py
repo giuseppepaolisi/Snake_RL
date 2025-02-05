@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-def test_agent(agent, num_episodes=10, size=5):
-    env = Snake_Env(size=size, render_mode='human')
+def test_agent(agent, num_episodes=100, size=5):
+    env = Snake_Env(size=size)
     
     # Directory per salvare i grafici
     os.makedirs('metrics/test', exist_ok=True)
@@ -47,8 +47,11 @@ def plot_metrics(agent, data, metric, num_episodes):
     np.save(data_path, data)
     
     # Grafico
+    # Calcola la media mobile
+    window_size = 100
+    moving_avg = np.convolve(data, np.ones((window_size,)) / window_size, mode="valid")
     plt.figure(figsize=(12, 6))
-    plt.plot(range(1, len(data) + 1), data, label=f"Total {metric.capitalize()}", color='blue', alpha=0.6)
+    plt.plot(range(window_size, len(data) + 1), moving_avg, label=f"Total {metric.capitalize()}", color='blue', alpha=0.6)
     plt.xlabel("Episode")
     plt.ylabel(metric.capitalize())
     plt.title(f"{metric.capitalize()} ({agent.get_model()})")
