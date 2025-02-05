@@ -99,7 +99,7 @@ class Train:
     
     def plot_eps(self):
         # Carica i dati salvati
-        rewards_path = f'metrics/epsilon_decay_{self.agent.get_model()}_{self.episodes}.npy'
+        rewards_path = f'metrics/epsilon_decay_{self.agent.get_model()}_{self.agent.decay_mode}_{self.episodes}.npy'
         eps = np.load(rewards_path)
 
         # Grafico
@@ -109,7 +109,7 @@ class Train:
         plt.ylabel("Epsilon")
         plt.title(f"Epsilon decay ({self.agent.get_model()})")
         plt.legend()
-        plt.savefig(f'metrics/epsilon_decay_{self.agent.get_model()}_{self.episodes}.png')
+        plt.savefig(f'metrics/epsilon_decay_{self.agent.get_model()}_{self.agent.decay_mode}_{self.episodes}.png')
         plt.show()
         
     def plot_score(self):
