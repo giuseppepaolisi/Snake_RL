@@ -97,7 +97,7 @@ class QLearningAgent(BaseAgent):
         """
         snake_head = tuple(state['snake'][0])
         apple = tuple(state['apple'])
-        orientation = tuple(state['orientation'])
+        orientation = state['orientation'].index(1)
         distance = int(state['distance_to_apple'][0] * 10)  # Discretizza la distanza
         relative_direction = tuple(np.round(state['relative_direction'], 1))
         proximity_to_wall = tuple(state['proximity_to_wall'])
@@ -154,7 +154,7 @@ class Sarsa(BaseAgent):
         """
         snake_head = tuple(state['snake'][0])
         apple = tuple(state['apple'])
-        orientation = tuple(state['orientation'])
+        orientation = state['orientation'].index(1)
         distance = int(state['distance_to_apple'][0] * 10)  # Discretizza la distanza
         relative_direction = tuple(np.round(state['relative_direction'], 1))
         proximity_to_wall = tuple(state['proximity_to_wall'])
